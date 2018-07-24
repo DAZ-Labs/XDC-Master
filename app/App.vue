@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div class="page-layout mainScreen">
+    <div class="page-layout">
       <md-toolbar class="md-primary">
         <div class="md-toolbar-row">
           <div class="md-toolbar-section-start">
@@ -8,47 +8,38 @@
           </div>
 
           <div class="md-toolbar-section-end">
-            <md-button class="md-raised" >Add New</md-button>
+            <md-button class="md-raised" >Become a Candidate</md-button>
 
-            <md-menu md-direction="bottom-start" md-align-trigger>
+           <!--md-menu md-direction="bottom-start" md-align-trigger>
               <md-button md-menu-trigger>
                 <md-icon>more_vert</md-icon>
               </md-button>
 
               <md-menu-content>
-                <md-menu-item><md-button class="md-primary">Show Your Private Key</md-button></md-menu-item>
+               <md-menu-item><md-button class="md-primary">Balance</md-button></md-menu-item>
               </md-menu-content>
-            </md-menu>
+            </md-menu-->
           </div>
         </div>
       </md-toolbar>
+      <div class="main-content">
+          <router-view></router-view>
+      </div>
+
     </div>
   </div>
 </template>
 
-<script>
-import Vue from 'vue'
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.css'
-import 'vue-material/dist/theme/default.css'
-Vue.use(VueMaterial)
-export default {
-  name: 'app',
-  data() {
-    return {
-    };
-  },
-  computed: {
-  },
-  watch: {
-    '$route'() { }
-  },
-  created() { },
-  mounted() { },
-  methods: { }
-};
-</script>
+
 
 <style>
+.main-content {
+  width: 960px;
+    margin: 0 auto;
+}
+
+.table-container {
+    padding-top: 40px;
+}
 
 </style>

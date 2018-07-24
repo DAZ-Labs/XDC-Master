@@ -20,13 +20,14 @@ module.exports = {
     module: {
         rules: [
             { test: /\.vue$/,
+
                 loader: "vue-loader",
             },
             {
                 test: /\.css$/,
                 use: [ 'style-loader', 'css-loader' ]
             },
-            { test: /\.json$/, use: 'json-loader' },
+           
             {
                 test: /\.js$/,
                 exclude: /(node_modules|bower_components)/,

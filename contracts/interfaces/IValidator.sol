@@ -1,5 +1,7 @@
 pragma solidity ^0.4.21;
 
 interface IValidator {
-    function propose(address) external payable;
+    function propose() external payable;
+    function vote(address) external payable;
+    
 }

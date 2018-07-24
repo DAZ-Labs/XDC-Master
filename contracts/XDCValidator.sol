@@ -5,54 +5,72 @@ import "./libs/SafeMath.sol";
 
 contract XDCValidator is IValidator {
     using SafeMath for uint256;
+     event Vote(address _candidate, uint256 _cap);
+     event Vote(address _candidate, uint256 _cap);
 
     struct ValidatorState {
-        bool isValidator;
         bool isCandidate;
         uint256 cap;
+         mapping(address => uint256) voters;
     }
 
     mapping(address => ValidatorState) validatorsState;
-    uint256 threshold = 10000000 * 10** 18; // 10M XDC
+   address[] public candidates;
+   uint256 candidateCount = 0;
+    uint256 public constant minCandidateCap = 10000 ether;
+    uint256 public constant maxCandidateNumber = 500;
+    uint256 public constant maxValidatorNumber = 99;
 
-    function XDCValidator(address[] _validators, uint256[] _caps) public {
 
-        for (uint256 i = 0; i < _validators.length; i++) {
-            validatorsState[_validators[i]] = ValidatorState({
-                isValidator: true,
+    function XDCValidator(address[] _candidates, uint256[] _caps) public {
+        candidates = _candidates
+         for (uint256 i = 0; i < _candidates.length; i++) {
+            validatorsState[_candidates[i]] = ValidatorState({
+
                 isCandidate: true,
                 cap: _caps[i]
             });
+             candidateCount = candidateCount + 1;
+
         }
 
     }
 
-    function propose(address _candidate) external payable {
-        // only validator can propose a candidate
-        require(validatorsState[msg.sender].isValidator);
-        validatorsState[_candidate] = ValidatorState({
-            isValidator: false,
+     function propose() external payable {
++        // anyone can deposit 10M XDC to become a candidate
++        require(msg.value >= minCandidateCap);
++        require(!validatorsState[msg.sender].isCandidate);
++        require(candidateCount <= maxCandidateNumber);
++        candidates.push(msg.sender);
++        validatorsState[msg.sender] = ValidatorState({
+
             isCandidate: true,
             cap: msg.value
         });
-        
+        candidateCount = candidateCount + 1;
+
     }
 
-    function vote(address _candidate) public payable {
+     function vote(address _candidate) external payable {
         // only vote for candidate proposed by a validator
         require(validatorsState[_candidate].isCandidate);
         validatorsState[_candidate].cap = validatorsState[_candidate].cap.add(msg.value);
-        if (validatorsState[_candidate].cap >= threshold) {
-            validatorsState[_candidate].isValidator = true;
-        }
+         validatorsState[_candidate].voters[msg.sender] = validatorsState[_candidate].voters[msg.sender].add(msg.value);
+        emit Vote(_candidate, msg.value);
     }
 
-    function getValidators() public view returns(address[]) {
-       return validators;
+    function getCandidates() public view returns(address[]) {
+       return candidates;
+
     }
 
-    function isValidator(address _candidate) public view returns(bool) {
-       return validatorsState[_candidate].isValidator;
+    function getCandidateCap(address _candidate) public view returns(uint256) {
+        return validatorsState[_candidate].cap;
+    }
+
+    function getVoterCap(address _candidate, address _voter) public view returns(uint256) {
+        return validatorsState[_candidate].voters[_voter];
+
     }
 
     function isCandidate(address _candidate) public view returns(bool) {
@@ -60,12 +78,11 @@ contract XDCValidator is IValidator {
     }
 
     function unvote(address _candidate, uint256 _cap) public {
-        // only unvote for candidate who does not become validator yet
-        require(!validatorsState[_candidate].isValidator);
         require(validatorsState[_candidate].isCandidate);
-        require(validatorsState[_candidate].votes[msg.sender] >= _cap);
+         require(validatorsState[_candidate].voters[msg.sender] >= _cap);
+
         validatorsState[_candidate].cap = validatorsState[_candidate].cap.sub(_cap);
-        validatorsState[_candidate].votes[msg.sender] = validatorsState[_candidate].votes[msg.sender].sub(_cap);
+        validatorsState[_candidate].voters[msg.sender] = validatorsState[_candidate].voters[msg.sender].sub(_cap);
         // refunding to user after unvoting
         msg.sender.transfer(_cap);
     }
