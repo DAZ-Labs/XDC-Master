@@ -1,42 +1,77 @@
-const path = require('path');
+var path = require('path')
 var webpack = require('webpack')
-function resolve (dir) {
-    return path.join(__dirname, '..', dir)
-}
-
 module.exports = {
-    entry: './app/app.js',
-    output: {
-        path: path.resolve(__dirname, 'build'),
-        filename: 'app.js'
-    },
-    resolve: {
-        extensions: ['.js', '.vue', '.json'],
-        alias: {
-            'vue$': 'vue/dist/vue.min.js',
-            '@': resolve('app'),
-        }
-    },
-    module: {
-        rules: [
-            { test: /\.vue$/,
-
-                loader: "vue-loader",
-            },
-            {
-                test: /\.css$/,
-                use: [ 'style-loader', 'css-loader' ]
-            },
-           
-            {
-                test: /\.js$/,
-                exclude: /(node_modules|bower_components)/,
-                loader: 'babel-loader',
-                query: {
-                    presets: ['es2015'],
-                    plugins: ['transform-runtime']
-                }
-            }
-        ]
-    }
+mode: 'development',
+entry: './app/app.js',
+output: {
+path: path.resolve(__dirname, './build'),
+publicPath: '/build/',
+filename: 'app.js'
+},
+module: {
+rules: [
+{
+enforce: 'pre',
+test: [/\.js$/, /\.vue$/],
+exclude: /node_modules/,
+loader: 'eslint-loader'
+},
+{
+test: /\.css$/,
+use: [
+'vue-style-loader',
+'css-loader'
+]
+}, {
+test: /\.vue$/,
+loader: 'vue-loader',
+options: {
+loaders: {
+}
+// other vue-loader options go here
+}
+},
+{
+test: /\.js$/,
+loader: 'babel-loader',
+exclude: /node_modules/
+},
+{
+test: /\.(png|jpg|gif|svg)$/,
+loader: 'file-loader',
+options: {
+name: '[name].[ext]?[hash]'
+}
+}
+]
+},
+resolve: {
+alias: {
+'vue$': 'vue/dist/vue.esm.js'
+},
+extensions: ['*', '.js', '.vue', '.json']
+},
+devServer: {
+historyApiFallback: true,
+noInfo: true,
+overlay: true
+},
+performance: {
+hints: false
+},
+devtool: '#eval-source-map'
+}
+if (process.env.NODE_ENV === 'production') {
+module.exports.devtool = '#source-map'
+// http://vue-loader.vuejs.org/en/workflow/production.html
+module.exports.plugins = (module.exports.plugins || []).concat([
+new webpack.DefinePlugin({
+'process.env': {
+NODE_ENV: '"production"'
+}
+}),
+new webpack.LoaderOptionsPlugin({
+minimize: true
+})
+])
 }
