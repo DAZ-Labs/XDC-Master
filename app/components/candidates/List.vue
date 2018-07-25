@@ -1,9 +1,17 @@
 <template>
     <div>
-        <div class="table-container">
+        <md-empty-state
+            v-if="isNotReady"
+            md-icon="account_balance_wallet"
+            md-label="MetaMask is not installed"
+            md-description="Please install &amp; login Metamask Extension then connect it to XinFin Mainnet or Testnet">
+            <md-button class="md-primary md-raised" href="https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn" target="_blank">Install Metamask</md-button>
+        </md-empty-state>
+        <div class="table-container" v-if="!isNotReady">
+
             <md-table md-card>
                 <md-table-toolbar>
-                    <h1 class="md-title">Candidates</h1>
+                    <div class="md-title">Candidates</div>
                 </md-table-toolbar>
 
                 <md-table-row>
@@ -12,7 +20,7 @@
                     <md-table-head>Capacity</md-table-head>
                     <md-table-head></md-table-head>
                 </md-table-row>
-                <md-table-row v-for="c, key in candidates">
+                <md-table-row v-for="(c, key) in candidates" :key="key">
                     <md-table-cell md-numeric>{{ key + 1 }}</md-table-cell>
                     <md-table-cell><router-link :to="'/candidates/' + c.address">{{ c.address }}</router-link></md-table-cell>
                     <md-table-cell>{{ c.cap }}</md-table-cell>
@@ -22,16 +30,13 @@
         </div>
         <md-dialog-prompt
                                               :md-active.sync="voteActive"
-                                              v-model="voteValue"
-                                              md-title="How much?"
-                                              md-input-maxlength="30"
-                                              md-input-placeholder="Type $XDC..."
-                                              md-confirm-text="Confirm" @md-confirm="vote()"/>
-        <md-dialog-alert
-                                          :md-active.sync="isNotReady"
-                                          md-title="Note!"
-                                          md-content="You have to:<ul><li>Using chrome browser</li><li>Install/Login Metamask Plugin</li><li>Connect Metamask to XinFin Mainnet or Testnet</li></ul>" />
-    </div>
++            v-model="voteValue"
++            md-title="How much?"
++            md-input-maxlength="30"
++            md-input-placeholder="Type $XDC..."
++            md-confirm-text="Confirm" @md-confirm="vote()"/>
+
+         </div>
 </template>
 <script>
 export default {
@@ -72,13 +77,15 @@ export default {
     methods: {
         vote: function() {
             var vm = this;
-            var account = vm.account;
             var candidate = this.voteItem;
             var value = this.voteValue
-            vm.XDCValidator.deployed().then(function(tv) {
-                return tv.vote(candidate.address, {from: account, value: parseFloat(value)*10**18}).then((d) => {
-                    return tv.getCandidateCap.call(candidate.address, {from: account}).then(d => {
-                        candidate.cap = String(d/10**18) + ' $XDC';
+           vm.getAccount().then( account => {
++                vm.XDCValidator.deployed().then(function(tv) {
++                    return tv.vote(candidate.address, {from: account, value: parseFloat(value)*10**18}).then((d) => {
++                        return tv.getCandidateCap.call(candidate.address, {from: account}).then(d => {
++                            candidate.cap = String(d/10**18) + ' $XDC';
++                        });
+
                     });
                 });
             });
