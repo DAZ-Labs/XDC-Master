@@ -15,12 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(validator({}));
 
-app.set('views', './views');
-app.set('view engine', 'ejs');
-app.use('/assets', express.static('./build'));
-app.use('/', function(req, res) {
-	res.render('app');
-});
+
 
 // error handler
 app.use(require('./middlewares/error'));
