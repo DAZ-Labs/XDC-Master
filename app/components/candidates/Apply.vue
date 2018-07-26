@@ -19,42 +19,29 @@
                 </md-card-content>
 
                 <md-card-actions>
-                     <md-button
+                    <md-button
                         v-if="!isCandidate"
                         class="md-primary"
                         @click="applyActive = true;"><md-icon>arrow_upward</md-icon> Apply</md-button>
-                    <md-button
-                        v-if="isCandidate"
-                        class="md-accent"
-                        @click="retireActive = true;"><md-icon>arrow_downward</md-icon> Retire</md-button>
-
                 </md-card-actions>
             </md-card>
         </div>
         <md-dialog-prompt
             :md-active.sync="applyActive"
             v-model="applyValue"
-            md-title="How much? (at least 10M $XDC)"
+            md-title="How much? (at least 10000 $XDC)"
             md-input-maxlength="30"
             md-input-placeholder="Type $XDC..."
-           md-confirm-text="Confirm"
+            md-confirm-text="Confirm"
             @md-confirm="apply()"/>
-
-        <md-dialog-confirm
-            :md-active.sync="retireActive"
-            md-title="Do you want to retire?"
-            md-content="If you retire, you will receive back all your deposit."
-           md-confirm-text="Confirm"
-            @md-confirm="retire()"/>
         <md-snackbar
-             :md-active.sync="showSnackbar"
+            :md-active.sync="showSnackbar"
             md-position="center"
             md-persistent>
-            <span>{{ snackbarMessage }}</span>
+            <span>{{ snackBarMessage }}</span>
             <md-button
                 class="md-primary"
                 @click="showSnackbar = false">OK</md-button>
-
         </md-snackbar>
     </div>
 </template>
@@ -62,57 +49,51 @@
 export default {
     name: 'App',
     data () {
-        return { 
+        return {
             applyActive: false,
-            retireActive: false,
             showSnackbar: false,
+            snackBarMessage: '',
             isCandidate: false,
-            snackbarMessage: 'You have successfully applied!',
             applyValue: 10000
         }
     },
     computed: { },
     watch: {},
     updated () {},
-+    created () {
-+        var vm = this
-+        vm.getAccount().then(account => {
-+            return vm.XDCValidator.deployed().then(function (tv) {
+    created: async function () {
+        let self = this
 
-                return tv.isCandidate(account).then(rs => {
-                    vm.isCandidate = rs;
-                })
-            })
-        }) .catch(e => console.log(e))
-
+        try {
+            let account = await self.getAccount()
+            let contract = await self.XDCValidator.deployed()
+            self.isCandidate = await contract.isCandidate(account, { from: account })
+        } catch (e) {
+            console.log(e)
+        }
     },
     mounted () {
     },
     methods: {
-        apply: function () {
-            var vm = this
-            var value = this.applyValue
-            vm.getAccount().then(account => {
-               return vm.XDCValidator.deployed().then(function (tv) {
-                    return tv.propose({ from: account, value: parseFloat(value) * 10 ** 18 }).then(() => {
-                        vm.showSnackbar = true
-                    })
+        apply: async function () {
+            let self = this
+            let value = this.applyValue
+            try {
+                let account = await self.getAccount()
+                let contract = await self.XDCValidator.deployed()
+                let result = await contract.propose({
+                    from: account,
+                    value: parseFloat(value) * 10 ** 18
                 })
-            }).catch(e => console.log(e))
 
-        },
-        retire: function () {
-            var vm = this
-            var account = vm.account;
-            vm.getAccount().then(account => {
-                return vm.XDCValidator.deployed().then(function (tv) {
-                    return tv.retire({ from: account }).then(() => {
-                        vm.showSnackbar = true
-                        vm.snackbarMessage = 'You have successfully retired. Thank you!'
-                    })
-                })
-            }).catch(e => console.log(e))
-
+                self.isCandidate = true
+                self.showSnackbar = true
+                self.snackBarMessage = result.tx ? 'You have successfully applied!'
+                    : 'An error occurred while applying, please try again'
+            } catch (e) {
+                self.showSnackbar = true
+                self.snackBarMessage = 'An error occurred while applying, please try again'
+                console.log(e)
+            }
         }
     }
 }

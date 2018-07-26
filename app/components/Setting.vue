@@ -6,7 +6,7 @@
             </md-card-header>
 
             <md-card-content>
-			   <div>
+                <div>
                     <div class="md-layout-item">
                         <md-field>
                             <label for="provider">Network Providers</label>
@@ -15,27 +15,39 @@
                                 v-model="provider"
                                 name="provider">
                                 <md-option value="metamask">Metamask</md-option>
-                                <md-option value="mainnet">XDCChain Mainnet</md-option>
-                                <md-option value="testnet">XDCchain Testnet</md-option>
+                                <md-option value="mainnet">XinFin Mainnet</md-option>
+                                <md-option value="testnet">XinFin Testnet</md-option>
                             </md-select>
                         </md-field>
                         <md-field v-if="provider !== 'metamask'">
                             <label>MNEMONIC</label>
                             <md-input v-model="mnemonic"/>
                         </md-field>
+                        <div
+                            v-if="isNotReady && provider === 'metamask'">
+                            <p>Please install &amp; login
+                            Metamask Extension then connect it to XinFin Mainnet or Testnet.</p>
+                        </div>
 
+                    </div>
 
-				  </div>
-
-			  </div>
+                </div>
             </md-card-content>
 
             <md-card-actions>
-				<md-button
+                <md-button
                     class="md-primary md-raised"
                     @click="save()">Save</md-button>
-
             </md-card-actions>
+            <md-card-header v-if="!isNotReady">
+                <div class="md-title">Account Information</div>
+            </md-card-header>
+
+            <md-card-content v-if="!isNotReady">
+                <p>Address: {{ address }}</p>
+                <p>Balance: {{ balance }} $XDC</p>
+            </md-card-content>
+
         </md-card>
     </div>
 </template>
@@ -43,28 +55,45 @@
 import Web3 from 'web3'
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const networks = {
-    mainnet: '#',
-    testnet: '#'
+    mainnet: 'https://core.XDCcoin.io',
+    testnet: 'https://core.XDCcoin.io'
 }
 export default {
     name: 'App',
     data () {
         return {
+            isNotReady: !this.web3,
             mnemonic: '',
-            provider: 'metamask'
+            provider: 'metamask',
+            address: '',
+            balance: 0
         }
     },
     computed: {},
     watch: {},
     updated () {},
-    created () {
+    created: async function () {
         this.provider = this.NetworkProvider
+        let self = this
+
+        try {
+            let account = await self.getAccount()
+            self.address = account
+            self.web3.eth.getBalance(self.address, function (a, b) {
+                self.balance = b / 10 ** 18
+                if (a) {
+                    console.log('got an error', a)
+                }
+            })
+        } catch (e) {
+            console.log(e)
+        }
     },
-    mounted() {},
+    mounted () {},
     methods: {
         save: function () {
             const vm = this
-             var wjs = false
+            var wjs = false
             if (this.provider === 'metamask') {
                 if (window.web3) {
                     var p = window.web3.currentProvider
@@ -74,10 +103,8 @@ export default {
                 const walletProvider = new HDWalletProvider(this.mnemonic, networks[this.provider])
                 wjs = new Web3(walletProvider)
             }
-            vm.NetworProvider = this.provider
-            vm.setupProvider(wjs)
+            vm.setupProvider(this.provider, wjs)
             vm.$router.push({ path: '/' })
-
         }
     }
 }

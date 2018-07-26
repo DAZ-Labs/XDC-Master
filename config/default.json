@@ -3,7 +3,7 @@
     "host": "0.0.0.0",
     "port": 80
   },
-  "XDC": "#",
+  "XDC": "https://core.XDCcoin.io",
   "db": {
     "uri": "mongodb://mongodb:27017/wallets"
   },

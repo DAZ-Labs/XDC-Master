@@ -8,22 +8,20 @@
                 </md-card-header>
 
                 <md-card-content>
-                    
+
                     <p>Total: {{ cap }} $XDC</p>
                     <p>You voted: {{ iCap }} $XDC</p>
                 </md-card-content>
 
                 <md-card-actions>
-<md-button
+                    <md-button
                         class="md-primary"
                         @click="voteActive = true;"><md-icon>arrow_upward</md-icon> Vote</md-button>
                     <md-button
                         class="md-accent"
                         @click="unvoteActive = true;"><md-icon>arrow_downward</md-icon> Unvote</md-button>
-
-
                 </md-card-actions>
-                 <md-table>
+                <md-table v-if="voters.length > 0">
                     <md-table-toolbar>
                         <div class="md-title">Voters</div>
                     </md-table-toolbar>
@@ -33,32 +31,31 @@
                         <md-table-head>Address</md-table-head>
                         <md-table-head>Capacity</md-table-head>
                     </md-table-row>
-                     <md-table-row
-                        v-for="(v, key) in voters"
+                    <md-table-row
+                        v-for="(v, key) in sortedVoters"
                         :key="key">
-
                         <md-table-cell md-numeric>{{ key + 1 }}</md-table-cell>
                         <md-table-cell>{{ v.address }}</md-table-cell>
                         <md-table-cell>{{ v.cap }}</md-table-cell>
                     </md-table-row>
                 </md-table>
-
             </md-card>
         </div>
         <md-dialog-prompt
-                                               v-model="voteValue"
+            :md-active.sync="voteActive"
+            v-model="voteValue"
             md-title="How much?"
             md-input-maxlength="30"
             md-input-placeholder="Type $XDC..."
             md-confirm-text="Confirm"
             @md-confirm="vote()"/>
         <md-dialog-prompt
-                                               :md-active.sync="unvoteActive"
+            :md-active.sync="unvoteActive"
             v-model="unvoteValue"
             md-title="How much?"
             md-input-maxlength="30"
             md-input-placeholder="Type $XDC..."
-            md-confirm-text="Confirm" 
+            md-confirm-text="Confirm"
             @md-confirm="unvote()"/>
     </div>
 </template>
@@ -66,81 +63,84 @@
 export default {
     name: 'App',
     data () {
-        return { 
+        return {
             voteActive: false,
             voteValue: 1,
             unvoteActive: false,
             unvoteValue: 1,
-             voters: [],
+            voters: [],
             candidate: this.$route.params.address,
             cap: 0,
             iCap: 0
-        };
+        }
     },
-    computed: { },
+    computed: {
+        sortedVoters: function () {
+            return this.voters.slice().sort(function (a, b) {
+                return b.cap - a.cap
+            })
+        }
+    },
     watch: {},
     updated () {},
-    created () {
-        var vm = this
-        var candidate = vm.$route.params.address
-        vm.getAccount().then(account => {
-            return vm.XDCValidator.deployed().then(function (tv) {
-                return tv.getCandidateCap.call(candidate, { from: account }).then(cap => {
-                    vm.cap = String(cap / 10 ** 18)
-                    return tv.getVoterCap.call(candidate, account, { from: account }).then(iCap => {
-                        vm.iCap = String(iCap / 10 ** 18)
-                        return tv.getVoters.call(candidate, { from: account }).then(vs => {
+    created: async function () {
+        let self = this
+        try {
+            let candidate = self.$route.params.address
+            let account = await self.getAccount()
+            let contract = await self.XDCValidator.deployed()
+            let cap = await contract.getCandidateCap.call(candidate, { from: account })
+            let iCap = await contract.getVoterCap.call(candidate, account, { from: account })
+            let voters = await contract.getVoters.call(candidate, { from: account })
 
-                            var map = vs.map(it => {
- return tv.getVoterCap(candidate, it, { from: account }).then(cap => {
-                                    vm.voters.push({
-                                        address: it,
-                                        cap: String(cap / 10 ** 18)
-+                                    })
-+                                })
-+                            })
-+                            return Promise.all(map)
-+                        })
-+                    })
-+                })
-+            })
-+        }).catch(e => {
-+            console.log(e)
-+        })
-
+            self.cap = String(cap / 10 ** 18)
+            self.iCap = String(iCap / 10 ** 18)
+            voters.map(async (voter) => {
+                let voterCap = await contract.getVoterCap.call(candidate, voter, { from: account })
+                self.voters.push({
+                    address: voter,
+                    cap: (voterCap / 10 ** 18)
+                })
+            })
+        } catch (e) {
+            console.log(e)
+        }
     },
     mounted () {
     },
     methods: {
-        vote: function () {
-            var vm = this
-            var candidate = vm.candidate
-            var value = this.voteValue
-            vm.getAccount().then(account => {
-               return vm.XDCValidator.deployed().then(function (tv) {
-                    return tv.vote(candidate, { from: account, value: parseFloat(value) * 10 ** 18 }).then((d) => {
-                        return tv.getCandidateCap.call(candidate, { from: account }).then(d => {
-                            vm.cap = String(d / 10 ** 18)
-                        })
-                    })
-                })
-            }).catch(e => console.log(e))
+        vote: async function () {
+            let self = this
+            let candidate = this.candidate
+            let value = this.voteValue
 
+            try {
+                let account = await self.getAccount()
+                let contract = await self.XDCValidator.deployed()
+                await contract.vote(candidate, {
+                    from: account,
+                    value: parseFloat(value) * 10 ** 18
+                })
+                let cap = await contract.getCandidateCap.call(candidate, { from: account })
+                self.cap = String(cap / 10 ** 18)
+            } catch (e) {
+                console.log(e)
+            }
         },
-         unvote: function () {
-            var vm = this
-            var candidate = vm.candidate
-            var value = this.unvoteValue
-            vm.getAccount().then(account => {
-                return vm.XDCValidator.deployed().then(function (tv) {
-                    return tv.unvote(candidate, String(parseFloat(value) * 10 ** 18), { from: account }).then((d) => {
-                        return tv.getCandidateCap.call(candidate, { from: account }).then(d => {
-                            vm.cap = String(d / 10 ** 18)
-                        })
-                    })
-                })
-            }).catch(e => console.log(e))
+        unvote: async function () {
+            let self = this
+            let candidate = this.candidate
+            let value = this.voteValue
 
+            try {
+                let account = await self.getAccount()
+                let contract = await self.XDCValidator.deployed()
+                await contract.unvote(candidate, String(parseFloat(value) * 10 ** 18), { from: account })
+                let cap = await contract.getCandidateCap.call(candidate, { from: account })
+                self.cap = String(cap / 10 ** 18)
+            } catch (e) {
+                console.log(e)
+            }
         }
     }
 }

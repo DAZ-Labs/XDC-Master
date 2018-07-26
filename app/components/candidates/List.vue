@@ -3,20 +3,15 @@
         <md-empty-state
             v-if="isNotReady"
             md-icon="account_balance_wallet"
-            md-label="MetaMask is not installed"
-            md-description="Please install &amp; login
-            Metamask Extension then connect it to XinFin Mainnet or Testnet">
+            md-label="Disconnected!"
+            md-description="Please setup your wallet provider.">
             <md-button
-                class="md-primary md-raised"
-                href="https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn"
-               target="_blank">Install Metamask</md-button>
-
-            </md-empty-state>
-         <div
+                class="md-raised"
+                href="/setting">Change Settings</md-button>
+        </md-empty-state>
+        <div
             v-if="!isNotReady"
             class="table-container">
-
-
             <md-table md-card>
                 <md-table-toolbar>
                     <div class="md-title">Candidates</div>
@@ -26,38 +21,35 @@
                     <md-table-head md-numeric>ID</md-table-head>
                     <md-table-head>Address</md-table-head>
                     <md-table-head>Capacity</md-table-head>
-                    </md-table-head>
+                    <md-table-head/>
                 </md-table-row>
-                 <md-table-row
-                    v-for="(c, key) in candidates"
-                    :key="key">
 
+                <md-table-row
+                    v-for="(c, key) in sortedCandidates"
+                    :key="key">
                     <md-table-cell md-numeric>{{ key + 1 }}</md-table-cell>
-                     <md-table-cell>
+                    <md-table-cell>
                         <router-link :to="'/candidates/' + c.address">{{ c.address }}</router-link>
                     </md-table-cell>
-
-                    <md-table-cell>{{ c.cap }}</md-table-cell>
+                    <md-table-cell>{{ c.cap }} $XDC</md-table-cell>
                     <md-table-cell><md-button
                         class="md-raised md-primary"
                         @click="voteActive = true; voteItem = c">Vote</md-button></md-table-cell>
-
-                    </md-table-row>
+                </md-table-row>
             </md-table>
         </div>
         <md-dialog-prompt
-                                              :md-active.sync="voteActive"
+            :md-active.sync="voteActive"
             v-model="voteValue"
             md-title="How much?"
             md-input-maxlength="30"
             md-input-placeholder="Type $XDC..."
             md-confirm-text="Confirm"
             @md-confirm="vote()"/>
-
-
-         </div>
+    </div>
 </template>
 <script>
+
 export default {
     name: 'App',
     data () {
@@ -69,49 +61,53 @@ export default {
             candidates: []
         }
     },
-    computed: { },
-    watch: {},
-    
-    updated () {},
-    created () {
-        var vm = this
-        var account = vm.account
-        vm.XDCValidator.deployed().then(function (tv) {
-            return tv.getCandidates.call({ from: account }).then(cs => {
-                var map = cs.map(it => {
-                   return tv.getCandidateCap.call(it, { from: account }).then(d => {
-
-                        vm.candidates.push({
-                              address: it, cap: String(d / 10 ** 18) + ' $XDC'
-                        })
-                    })
-                })
-                return Promise.all(map)
+    computed: {
+        sortedCandidates: function () {
+            return this.candidates.slice().sort(function (a, b) {
+                return b.cap - a.cap
             })
-
-        }).catch(e => {
-            this.isNotReady = true
-        })
+        }
+    },
+    watch: {},
+    updated () {},
+    created: async function () {
+        let self = this
+        try {
+            let account = await self.getAccount()
+            let contract = await self.XDCValidator.deployed()
+            let candidates = await contract.getCandidates.call({ from: account })
+            candidates.map(async (candidate) => {
+                let cap = await contract.getCandidateCap.call(candidate, { from: account })
+                self.candidates.push({
+                    address: candidate,
+                    cap: (cap / 10 ** 18)
+                })
+            })
+        } catch (e) {
+            self.isNotReady = true
+            console.log(e)
+        }
     },
     mounted () {
     },
     methods: {
-        vote: function () {
-            var vm = this
-           var candidate = this.voteItem
-            var value = this.voteValue
-           vm.getAccount().then(account => {
-                return vm.XDCValidator.deployed().then(function (tv) {
-                    return tv.vote(candidate.address, {
-                        from: account, value: parseFloat(value) * 10 ** 18
-                    }).then((d) => {
-                        return tv.getCandidateCap.call(candidate.address, { from: account }).then(d => {
-                            candidate.cap = String(d / 10 ** 18) + ' $XDC'
-                        })
-                    })
-                })
-            }).catch(e => console.log(e))
+        vote: async function () {
+            let self = this
+            let candidate = this.voteItem
+            let value = this.voteValue
 
+            try {
+                let account = await self.getAccount()
+                let contract = await self.XDCValidator.deployed()
+                await contract.vote(candidate.address, {
+                    from: account,
+                    value: parseFloat(value) * 10 ** 18
+                })
+                let cap = await contract.getCandidateCap.call(candidate.address, { from: candidate.address })
+                candidate.cap = String(cap / 10 ** 18)
+            } catch (e) {
+                console.log(e)
+            }
         }
     }
 }

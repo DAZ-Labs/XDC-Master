@@ -1,6 +1,5 @@
 'use strict'
-module.exports = function (next) {
-        return next()
-    }
-    
 
+module.exports = function (next) {
+    return next()
+}
