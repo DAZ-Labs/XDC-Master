@@ -36,7 +36,7 @@
                             </md-button>
 
                             <md-menu-content>
-                                <md-menu-item v-if="!isNotReady && isCandidate">
+                                <md-menu-item>
                                     <md-button
                                         to="/retire"
                                         class="md-accent">
@@ -73,18 +73,26 @@ export default {
             isCandidate: false
         }
     },
-    created: async function () {
-        let self = this
-
-        try {
-            let account = await self.getAccount()
-            let contract = await self.XDCValidator.deployed()
-            self.isCandidate = await contract.isCandidate(account, { from: account })
-            self.candidates = await contract.getCandidates.call({ from: account })
-        } catch (e) {
-            console.log(e)
-            self.isNotReady = true
+    created () {
+        var vm = this
+        if (vm.isNotReady) {
+            return false
         }
+        var account = vm.account
+        vm.getAccount().then(account => {
+            return vm.XDCValidator.deployed().then(function (tv) {
+                return tv.isCandidate(account).then(rs => {
+                    vm.isCandidate = rs
+                })
+            })
+        }).catch(e => console.log(e))
+        vm.XDCValidator.deployed().then(function (tv) {
+            return tv.getCandidates.call({ from: account }).then(cs => {
+                vm.candidates = cs
+            })
+        }).catch(e => {
+            this.isNotReady = true
+        })
     },
     methods: {
         goPage: function (s) {

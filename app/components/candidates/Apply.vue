@@ -23,6 +23,10 @@
                         v-if="!isCandidate"
                         class="md-primary"
                         @click="applyActive = true;"><md-icon>arrow_upward</md-icon> Apply</md-button>
+                    <md-button
+                        v-if="isCandidate"
+                        class="md-accent"
+                        @click="retireActive = true;"><md-icon>arrow_downward</md-icon> Retire</md-button>
                 </md-card-actions>
             </md-card>
         </div>
@@ -34,11 +38,17 @@
             md-input-placeholder="Type $XDC..."
             md-confirm-text="Confirm"
             @md-confirm="apply()"/>
+        <md-dialog-confirm
+            :md-active.sync="retireActive"
+            md-title="Do you want to retire?"
+            md-content="If you retire, you will receive back all your deposit."
+            md-confirm-text="Confirm"
+            @md-confirm="retire()"/>
         <md-snackbar
             :md-active.sync="showSnackbar"
             md-position="center"
             md-persistent>
-            <span>{{ snackBarMessage }}</span>
+            <span>You have successfully applied!</span>
             <md-button
                 class="md-primary"
                 @click="showSnackbar = false">OK</md-button>
@@ -51,8 +61,8 @@ export default {
     data () {
         return {
             applyActive: false,
+            retireActive: false,
             showSnackbar: false,
-            snackBarMessage: '',
             isCandidate: false,
             applyValue: 10000
         }
@@ -85,13 +95,10 @@ export default {
                     value: parseFloat(value) * 10 ** 18
                 })
 
-                self.isCandidate = true
-                self.showSnackbar = true
-                self.snackBarMessage = result.tx ? 'You have successfully applied!'
-                    : 'An error occurred while applying, please try again'
+                if (result.tx) {
+                    self.showSnackbar = true
+                }
             } catch (e) {
-                self.showSnackbar = true
-                self.snackBarMessage = 'An error occurred while applying, please try again'
                 console.log(e)
             }
         }
