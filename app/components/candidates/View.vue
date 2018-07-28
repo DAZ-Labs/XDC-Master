@@ -8,22 +8,53 @@
                 </md-card-header>
 
                 <md-card-content>
+                    <md-list class="md-double-line">
+                        <md-list-item>
+                            <md-icon md-src="/app/assets/XDC.svg" />
+                            <div class="md-list-item-text">
+                                <span><strong>{{ cap }}</strong> $XDC</span>
+                                <span>Total</span>
+                            </div>
+                        </md-list-item>
 
-                    <p>Total: {{ cap }} $XDC</p>
-                    <p>You voted: {{ iCap }} $XDC</p>
+                        <md-list-item>
+                            <md-icon>send</md-icon>
+                            <span class="md-list-item-text">Sent Mail</span>
+                        </md-list-item>
+
+                        <md-list-item>
+                            <md-icon>delete</md-icon>
+                            <span class="md-list-item-text">Trash</span>
+                        </md-list-item>
+
+                        <md-list-item>
+                            <md-icon>error</md-icon>
+                            <span class="md-list-item-text">Spam</span>
+                        </md-list-item>
+
+                        <md-divider class="md-inset"/>
+                    </md-list>
+                    <p>You voted: <strong>{{ iCap }} $XDC</strong></p>
                 </md-card-content>
+
+                <md-divider/>
 
                 <md-card-actions>
                     <md-button
-                        class="md-primary"
+                        class="md-raised md-primary"
                         @click="voteActive = true;"><md-icon>arrow_upward</md-icon> Vote</md-button>
                     <md-button
-                        class="md-accent"
+                        class="md-raised md-accent"
                         @click="unvoteActive = true;"><md-icon>arrow_downward</md-icon> Unvote</md-button>
                 </md-card-actions>
-                <md-table>
+
+                <md-divider/>
+
+                <md-table v-if="voters.length > 0">
                     <md-table-toolbar>
-                        <div class="md-title">Voters</div>
+                        <div class="md-title">Voters
+                            <p class="md-subhead">People who voted for this candidate</p>
+                        </div>
                     </md-table-toolbar>
 
                     <md-table-row>
@@ -31,12 +62,15 @@
                         <md-table-head>Address</md-table-head>
                         <md-table-head>Capacity</md-table-head>
                     </md-table-row>
+
                     <md-table-row
                         v-for="(v, key) in sortedVoters"
                         :key="key">
                         <md-table-cell md-numeric>{{ key + 1 }}</md-table-cell>
-                        <md-table-cell>{{ v.address }}</md-table-cell>
-                        <md-table-cell>{{ v.cap }}</md-table-cell>
+                        <md-table-cell>
+                            <router-link :to="'/voter/' + v.address">{{ v.address }}</router-link>
+                        </md-table-cell>
+                        <md-table-cell>{{ v.cap }} $XDC</md-table-cell>
                     </md-table-row>
                 </md-table>
             </md-card>
@@ -121,7 +155,7 @@ export default {
                     from: account,
                     value: parseFloat(value) * 10 ** 18
                 })
-                let cap = await contract.getCandidateCap.call(candidate, { from: candidate.address })
+                let cap = await contract.getCandidateCap.call(candidate, { from: account })
                 self.cap = String(cap / 10 ** 18)
             } catch (e) {
                 console.log(e)
