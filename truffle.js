@@ -11,7 +11,7 @@ module.exports = {
         },
         XDC: {
             provider: function () {
-                return new HDWalletProvider(process.env.MNEMONIC, config.get('XDC'))
+                return new HDWalletProvider(process.env.MNEMONIC, config.get('blockchain.rpc'))
             },
             network_id: 40686
         }

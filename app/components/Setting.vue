@@ -55,8 +55,8 @@
 import Web3 from 'web3'
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const networks = {
-    mainnet: 'https://core.XDCcoin.io',
-    testnet: 'https://core.XDCcoin.io'
+    mainnet: '#',
+    testnet: '#'
 }
 export default {
     name: 'App',

@@ -1,79 +1,129 @@
 <template>
     <div>
-        <div class="table-container">
-            <md-card>
-                <md-card-header>
-                    <div class="md-title">Candidate</div>
-                    <div class="md-subhead">{{ candidate }}</div>
-                </md-card-header>
+        <link
+            rel="stylesheet"
+            href="https://use.fontawesome.com/releases/v5.0.12/css/all.css"
+            integrity="sha384-G0fIWCsCzJIMAVNQPfjH08cyYaUtMwjJwqiRKxxE/rx96Uroj1BtIQ6MLJuheaO9"
+            crossorigin="anonymous">
+        <div class="table-container md-layout md-gutter">
+            <div class="md-layout-item md-xlarge-size-50 md-xsmall-size-100">
+                <md-card>
+                    <md-card-header>
+                        <md-content>
+                            <div class="md-headline">Kevin Joy</div>
+                            <div class="md-subhead">{{ candidate }}</div>
+                        </md-content>
+                    </md-card-header>
 
-                <md-card-content>
-                    <md-list class="md-double-line">
-                        <md-list-item>
-                            <md-icon md-src="/app/assets/XDC.svg" />
-                            <div class="md-list-item-text">
-                                <span><strong>{{ cap }}</strong> $XDC</span>
-                                <span>Total</span>
-                            </div>
-                        </md-list-item>
+                    <md-card-content>
+                        <md-content>
+                            <a href="#"><md-icon class="fab fa-github" /></a>
+                            <a href="#"><md-icon class="fab fa-linkedin" /></a>
+                            <a href="#"><md-icon class="far fa-envelope" /></a>
+                        </md-content>
+                        <md-list class="md-double-line">
+                            <md-list-item>
+                                <md-icon md-src="/app/assets/XDC.svg" />
+                                <div class="md-list-item-text">
+                                    <span><strong>{{ cap }}</strong> $XDC</span>
+                                    <span>Total</span>
+                                </div>
+                            </md-list-item>
 
-                        <md-list-item>
-                            <md-icon>send</md-icon>
-                            <span class="md-list-item-text">Sent Mail</span>
-                        </md-list-item>
+                            <md-list-item>
+                                <md-icon class="far fa-thumbs-up"/>
+                                <div class="md-list-item-text">
+                                    <span><strong>{{ iCap }}</strong> $XDC</span>
+                                    <span>You voted</span>
+                                </div>
+                            </md-list-item>
+                        </md-list>
+                    </md-card-content>
 
-                        <md-list-item>
-                            <md-icon>delete</md-icon>
-                            <span class="md-list-item-text">Trash</span>
-                        </md-list-item>
-
-                        <md-list-item>
-                            <md-icon>error</md-icon>
-                            <span class="md-list-item-text">Spam</span>
-                        </md-list-item>
-
-                        <md-divider class="md-inset"/>
-                    </md-list>
-                    <p>You voted: <strong>{{ iCap }} $XDC</strong></p>
-                </md-card-content>
-
-                <md-divider/>
-
-                <md-card-actions>
-                    <md-button
-                        class="md-raised md-primary"
-                        @click="voteActive = true;"><md-icon>arrow_upward</md-icon> Vote</md-button>
-                    <md-button
-                        class="md-raised md-accent"
-                        @click="unvoteActive = true;"><md-icon>arrow_downward</md-icon> Unvote</md-button>
-                </md-card-actions>
-
-                <md-divider/>
-
-                <md-table v-if="voters.length > 0">
+                    <md-card-actions>
+                        <md-button
+                            class="md-raised md-primary"
+                            @click="voteActive = true;"><md-icon>arrow_upward</md-icon> Vote</md-button>
+                        <md-button
+                            class="md-raised md-accent"
+                            @click="unvoteActive = true;"><md-icon>arrow_downward</md-icon> Unvote</md-button>
+                    </md-card-actions>
+                </md-card>
+            </div>
+            <div class="md-layout-item md-xlarge-size-50 md-xsmall-size-100">
+                <md-table
+                    v-if="voters.length > 0"
+                    v-model="voters"
+                    md-card
+                    md-fixed-header
+                    md-sort="cap"
+                    md-sort-order="asc">
                     <md-table-toolbar>
                         <div class="md-title">Voters
                             <p class="md-subhead">People who voted for this candidate</p>
                         </div>
                     </md-table-toolbar>
-
-                    <md-table-row>
-                        <md-table-head md-numeric>ID</md-table-head>
-                        <md-table-head>Address</md-table-head>
-                        <md-table-head>Capacity</md-table-head>
-                    </md-table-row>
-
                     <md-table-row
-                        v-for="(v, key) in sortedVoters"
-                        :key="key">
-                        <md-table-cell md-numeric>{{ key + 1 }}</md-table-cell>
-                        <md-table-cell>
-                            <router-link :to="'/voter/' + v.address">{{ v.address }}</router-link>
+                        slot="md-table-row"
+                        slot-scope="{ item }">
+                        <md-table-cell
+                            md-label="ID"
+                            md-numeric>{{ item.id }}</md-table-cell>
+                        <md-table-cell
+                            md-label="Address"
+                            md-sort-by="address">
+                            <router-link :to="'/voter/' + item.address">{{ item.address }}</router-link>
                         </md-table-cell>
-                        <md-table-cell>{{ v.cap }} $XDC</md-table-cell>
+                        <md-table-cell
+                            md-numeric
+                            md-label="Capacity"
+                            md-sort-by="cap">{{ item.cap }} $XDC
+                        </md-table-cell>
                     </md-table-row>
                 </md-table>
-            </md-card>
+            </div>
+            <div class="md-layout-item md-xsmall-size-100">
+                <md-table
+                    v-if="transactions.length > 0"
+                    v-model="transactions"
+                    md-card
+                    md-fixed-header
+                    md-sort="id"
+                    md-sort-order="asc">
+                    <md-table-toolbar>
+                        <div class="md-title">Transactions
+                            <p class="md-subhead">People who voted for this candidate</p>
+                        </div>
+                    </md-table-toolbar>
+                    <md-table-row
+                        slot="md-table-row"
+                        slot-scope="{ item }">
+                        <md-table-cell
+                            md-numeric
+                            md-label="ID">{{ item.id }}</md-table-cell>
+                        <md-table-cell
+                            md-label="Voter"
+                            md-sort-by="voter">
+                            <router-link :to="'/voter/' + item.voter">{{ item.voter }}</router-link>
+                        </md-table-cell>
+                        <md-table-cell
+                            md-label="Candidate">
+                            {{ item.candidate }}
+                        </md-table-cell>
+                        <md-table-cell
+                            md-label="Event"
+                            md-sort-by="event">
+                            <md-chip>{{ item.event }}</md-chip>
+                        </md-table-cell>
+                        <md-table-cell
+                            md-numeric
+                            md-label="Capacity"
+                            md-sort-by="cap">
+                            {{ item.cap }} $XDC
+                        </md-table-cell>
+                    </md-table-row>
+                </md-table>
+            </div>
         </div>
         <md-dialog-prompt
             :md-active.sync="voteActive"
@@ -94,6 +144,7 @@
     </div>
 </template>
 <script>
+import axios from 'axios'
 export default {
     name: 'App',
     data () {
@@ -103,37 +154,39 @@ export default {
             unvoteActive: false,
             unvoteValue: 1,
             voters: [],
+            transactions: [],
             candidate: this.$route.params.address,
             cap: 0,
             iCap: 0
         }
     },
-    computed: {
-        sortedVoters: function () {
-            return this.voters.slice().sort(function (a, b) {
-                return b.cap - a.cap
-            })
-        }
-    },
+    computed: {},
     watch: {},
     updated () {},
     created: async function () {
         let self = this
         try {
             let candidate = self.$route.params.address
-            let account = await self.getAccount()
-            let contract = await self.XDCValidator.deployed()
-            let cap = await contract.getCandidateCap.call(candidate, { from: account })
-            let iCap = await contract.getVoterCap.call(candidate, account, { from: account })
-            let voters = await contract.getVoters.call(candidate, { from: account })
-
-            self.cap = String(cap / 10 ** 18)
-            self.iCap = String(iCap / 10 ** 18)
-            voters.map(async (voter) => {
-                let voterCap = await contract.getVoterCap.call(candidate, voter, { from: account })
+            let voters = await axios.get(`/api/candidates/${candidate}/voters`)
+            voters.data.map((v) => {
                 self.voters.push({
-                    address: voter,
-                    cap: (voterCap / 10 ** 18)
+                    address: v.voter,
+                    cap: (v.capacity / 10 ** 18)
+                })
+            })
+            self.voters.sort((a, b) => {
+                return b.cap - a.cap
+            }).map((v, i) => {
+                v.id = i + 1
+            })
+            let txs = await axios.get(`/api/transactions/candidate/${candidate}`)
+            txs.data.map((tx, idx) => {
+                self.transactions.push({
+                    id: idx + 1,
+                    voter: tx.voter,
+                    candidate: tx.candidate,
+                    event: tx.event,
+                    cap: (tx.capacity / 10 ** 18)
                 })
             })
         } catch (e) {
