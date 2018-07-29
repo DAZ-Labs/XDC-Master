@@ -26,14 +26,20 @@
                                 <md-icon md-src="/app/assets/XDC.svg" />
                                 <div class="md-list-item-text">
                                     <span><strong>{{ cap }}</strong> $XDC</span>
-                                    <span>Total</span>
+                                    <span>Capacity</span>
                                 </div>
                             </md-list-item>
-
+                            <md-list-item>
+                                <md-icon>arrow_upward</md-icon>
+                                <div class="md-list-item-text">
+                                    <span><strong>{{ totalVoted }}</strong> $XDC</span>
+                                    <span>Total voted</span>
+                                </div>
+                            </md-list-item>
                             <md-list-item>
                                 <md-icon class="far fa-thumbs-up"/>
                                 <div class="md-list-item-text">
-                                    <span><strong>{{ iCap }}</strong> $XDC</span>
+                                    <span><strong>{{ voted }}</strong> $XDC</span>
                                     <span>You voted</span>
                                 </div>
                             </md-list-item>
@@ -68,7 +74,8 @@
                         slot-scope="{ item }">
                         <md-table-cell
                             md-label="ID"
-                            md-numeric>{{ item.id }}</md-table-cell>
+                            md-numeric>{{ item.id }}
+                        </md-table-cell>
                         <md-table-cell
                             md-label="Address"
                             md-sort-by="address">
@@ -100,7 +107,8 @@
                         slot-scope="{ item }">
                         <md-table-cell
                             md-numeric
-                            md-label="ID">{{ item.id }}</md-table-cell>
+                            md-label="ID">{{ item.id }}
+                        </md-table-cell>
                         <md-table-cell
                             md-label="Voter"
                             md-sort-by="voter">
@@ -157,7 +165,8 @@ export default {
             transactions: [],
             candidate: this.$route.params.address,
             cap: 0,
-            iCap: 0
+            voted: 0,
+            totalVoted: 0
         }
     },
     computed: {},
@@ -167,18 +176,24 @@ export default {
         let self = this
         try {
             let candidate = self.$route.params.address
+            let account = await self.getAccount()
+            let c = await axios.get(`/api/candidates/${candidate}`)
+            self.cap = parseFloat(c.data.capacity) / 10 ** 18
+
             let voters = await axios.get(`/api/candidates/${candidate}/voters`)
             voters.data.map((v) => {
                 self.voters.push({
                     address: v.voter,
                     cap: (v.capacity / 10 ** 18)
                 })
+                self.totalVoted += (v.capacity / 10 ** 18)
             })
             self.voters.sort((a, b) => {
                 return b.cap - a.cap
             }).map((v, i) => {
                 v.id = i + 1
             })
+
             let txs = await axios.get(`/api/transactions/candidate/${candidate}`)
             txs.data.map((tx, idx) => {
                 self.transactions.push({
@@ -188,6 +203,10 @@ export default {
                     event: tx.event,
                     cap: (tx.capacity / 10 ** 18)
                 })
+
+                if (tx.voter === account) {
+                    self.voted += (parseFloat(tx.capacity) / 10 ** 18)
+                }
             })
         } catch (e) {
             console.log(e)
