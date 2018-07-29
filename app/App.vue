@@ -6,7 +6,7 @@
                     <div class="md-toolbar-section-start"><router-link to="/">
                         <h3
                             class="md-title"
-                            style="flex: 1">XDCChain Governance</h3></router-link>
+                            style="flex: 1">XinFin Governance</h3></router-link>
                     </div>
 
                     <md-autocomplete
@@ -112,6 +112,10 @@ export default {
 
 .md-card {
     margin-bottom: 30px;
+}
+
+.md-table-fixed-header + .md-table-content {
+    height: auto !important;
 }
 
 </style>

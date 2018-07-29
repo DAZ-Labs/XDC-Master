@@ -15,8 +15,8 @@
                                 v-model="provider"
                                 name="provider">
                                 <md-option value="metamask">Metamask</md-option>
-                                <md-option value="mainnet">XDCChain Mainnet</md-option>
-                                <md-option value="testnet">XDCchain Testnet</md-option>
+                                <md-option value="mainnet">XinFin Mainnet</md-option>
+                                <md-option value="testnet">XinFin Testnet</md-option>
                             </md-select>
                         </md-field>
                         <md-field v-if="provider !== 'metamask'">
@@ -26,7 +26,7 @@
                         <div
                             v-if="isNotReady && provider === 'metamask'">
                             <p>Please install &amp; login
-                            Metamask Extension then connect it to XDCchain Mainnet or Testnet.</p>
+                            Metamask Extension then connect it to XinFin Mainnet or Testnet.</p>
                         </div>
 
                     </div>
