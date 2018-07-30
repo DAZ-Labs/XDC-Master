@@ -1,49 +1,53 @@
 <template>
     <div>
-        <div class="table-container md-layout md-gutter md-alignment-top-center">
+        <div class="table-container md-layout md-gutter md-alignment-center">
             <form
                 novalidate
                 class="md-layout-item md-xlarge-size-50 md-large-size-50 md-xsmall-size-100"
                 @submit.prevent="validate()">
                 <md-card>
                     <md-card-header>
-                        <p class="md-title">Become a Candidate</p>
+                        <div class="md-title">Voting</div>
                     </md-card-header>
+
                     <md-card-content>
-                        <md-list>
+                        <md-list class="md-double-line">
                             <md-list-item>
-                                <md-icon md-src="/app/assets/XDC.svg" />
-                                <span class="md-list-item-text">You have to deposit at least 10,000 $XDC</span>
+                                <md-icon>how_to_vote</md-icon>
+                                <div class="md-list-item-text">
+                                    <span><router-link :to="'/voter/' + voter">{{ voter }}</router-link></span>
+                                    <span>Voter</span>
+                                </div>
                             </md-list-item>
                             <md-list-item>
-                                <md-icon>lock</md-icon>
-                                <span class="md-list-item-text">Your deposit will be locked</span>
-                            </md-list-item>
-                            <md-list-item>
-                                <md-icon>arrow_upward</md-icon>
-                                <span class="md-list-item-text">
-                                    Coin holder is able to vote for you to become a validator
-                                </span>
+                                <md-icon>account_circle</md-icon>
+                                <div class="md-list-item-text">
+                                    <span>
+                                        <router-link
+                                            :to="'/candidate/' + candidate">{{ candidate }}</router-link>
+                                    </span>
+                                    <span>Candidate</span>
+                                </div>
                             </md-list-item>
                             <md-list-item class="md-layout">
                                 <div class="md-layout-item md-xlarge-size-70 md-large-size-70 md-xsmall-size-100">
-                                    <md-field :class="getValidationClass('applyValue')">
+                                    <md-field :class="getValidationClass('voteValue')">
                                         <label>Vote</label>
                                         <md-input
-                                            v-model="applyValue"
-                                            name="apply-value"
+                                            v-model="voteValue"
+                                            name="vote-value"
                                             min="0.1"
                                             step="0.1"
                                             type="number"/>
                                         <md-icon md-src="/app/assets/XDC.svg" />
                                         <md-tooltip>
-                                            How much $XDC do you want to deposit?</md-tooltip>
+                                            How much $XDC would you like to vote for this candidate?</md-tooltip>
                                         <span
-                                            v-if="!$v.applyValue.required"
+                                            v-if="!$v.voteValue.required"
                                             class="md-error">Required field</span>
                                         <span
-                                            v-else-if="!$v.applyValue.minValue"
-                                            class="md-error">Must be greater than 10,000</span>
+                                            v-else-if="!$v.voteValue.minValue"
+                                            class="md-error">Must be greater than 10<sup>-18</sup></span>
                                     </md-field>
                                 </div>
                             </md-list-item>
@@ -51,9 +55,18 @@
                     </md-card-content>
                     <md-card-actions>
                         <md-button
-                            v-if="!isCandidate"
+                            v-if="!loading"
+                            class="md-raised md-accent"
+                            @click="$router.go(-1)">Cancel</md-button>
+                        <md-button
+                            v-if="!loading"
                             class="md-raised md-primary"
-                            type="submit"><md-icon>arrow_upward</md-icon> Apply</md-button>
+                            type="submit"><md-icon>check</md-icon> Submit</md-button>
+                        <md-progress-spinner
+                            v-if="loading"
+                            :md-diameter="30"
+                            :md-stroke="3"
+                            md-mode="indeterminate"/>
                     </md-card-actions>
                 </md-card>
             </form>
@@ -81,17 +94,9 @@
                 </md-card>
             </div>
         </div>
-        <md-snackbar
-            :md-active.sync="showSnackbar"
-            md-position="center"
-            md-persistent>
-            <span>{{ snackBarMessage }}</span>
-            <md-button
-                class="md-primary"
-                @click="showSnackbar = false">OK</md-button>
-        </md-snackbar>
     </div>
 </template>
+
 <script>
 import { validationMixin } from 'vuelidate'
 import {
@@ -103,28 +108,29 @@ export default {
     mixins: [validationMixin],
     data () {
         return {
-            showSnackbar: false,
-            snackBarMessage: '',
-            isCandidate: false,
-            applyValue: 10000
+            isNotReady: !this.web3,
+            voter: '',
+            candidate: this.$route.params.candidate,
+            voteValue: 1,
+            loading: false
         }
     },
     validations: {
-        applyValue: {
+        voteValue: {
             required,
-            minValue: minValue(10000)
+            minValue: minValue(10 ** -18)
         }
     },
-    computed: { },
-    watch: {},
+    computed: {
+    },
+    watch: {
+    },
     updated () {},
     created: async function () {
         let self = this
-
         try {
             let account = await self.getAccount()
-            let contract = await self.XDCValidator.deployed()
-            self.isCandidate = await contract.isCandidate(account, { from: account })
+            self.voter = account
         } catch (e) {
             console.log(e)
         }
@@ -145,27 +151,32 @@ export default {
             this.$v.$touch()
 
             if (!this.$v.$invalid) {
-                this.apply()
+                this.vote()
             }
         },
-        apply: async function () {
+        vote: async function () {
             let self = this
-            let value = this.applyValue
-            try {
-                let account = await self.getAccount()
-                let contract = await self.XDCValidator.deployed()
-                let result = await contract.propose({
-                    from: account,
-                    value: parseFloat(value) * 10 ** 18
-                })
+            let value = this.voteValue
 
-                self.isCandidate = true
-                self.showSnackbar = true
-                self.snackBarMessage = result.tx ? 'You have successfully applied!'
-                    : 'An error occurred while applying, please try again'
+            try {
+                if (self.isNotReady) {
+                    self.$router.push('/setting')
+                } else {
+                    self.loading = true
+                    let account = await self.getAccount()
+                    let contract = await self.XDCValidator.deployed()
+                    let rs = await contract.vote(self.candidate, {
+                        from: account,
+                        value: parseFloat(value) * 10 ** 18
+                    })
+
+                    self.loading = false
+                    if (rs.tx) {
+                        self.$router.push('/confirm/' + rs.tx)
+                    }
+                }
             } catch (e) {
-                self.showSnackbar = true
-                self.snackBarMessage = 'An error occurred while applying, please try again'
+                self.loading = false
                 console.log(e)
             }
         }

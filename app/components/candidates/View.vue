@@ -5,8 +5,8 @@
             href="https://use.fontawesome.com/releases/v5.0.12/css/all.css"
             integrity="sha384-G0fIWCsCzJIMAVNQPfjH08cyYaUtMwjJwqiRKxxE/rx96Uroj1BtIQ6MLJuheaO9"
             crossorigin="anonymous">
-        <div class="table-container md-layout md-gutter">
-            <div class="md-layout-item md-xlarge-size-50 md-xsmall-size-100">
+        <div class="table-container md-layout md-gutter md-alignment-top-center">
+            <div class="md-layout-item md-xlarge-size-50 md-large-size-50 md-xsmall-size-100">
                 <md-card>
                     <md-card-header>
                         <md-content>
@@ -48,17 +48,18 @@
 
                     <md-card-actions>
                         <md-button
-                            class="md-raised md-primary"
-                            @click="voteActive = true;"><md-icon>arrow_upward</md-icon> Vote</md-button>
-                        <md-button
                             class="md-raised md-accent"
                             @click="unvoteActive = true;"><md-icon>arrow_downward</md-icon> Unvote</md-button>
+                        <md-button
+                            :to="'/voting/' + candidate"
+                            class="md-raised md-primary"><md-icon>arrow_upward</md-icon> Vote</md-button>
                     </md-card-actions>
                 </md-card>
             </div>
-            <div class="md-layout-item md-xlarge-size-50 md-xsmall-size-100">
+            <div
+                v-if="voters.length > 0"
+                class="md-layout-item md-xlarge-size-50 md-large-size-50 md-xsmall-size-100">
                 <md-table
-                    v-if="voters.length > 0"
                     v-model="voters"
                     md-card
                     md-fixed-header
@@ -89,9 +90,10 @@
                     </md-table-row>
                 </md-table>
             </div>
-            <div class="md-layout-item md-xsmall-size-100">
+            <div
+                v-if="transactions.length > 0"
+                class="md-layout-item md-xsmall-size-100">
                 <md-table
-                    v-if="transactions.length > 0"
                     v-model="transactions"
                     md-card
                     md-fixed-header
@@ -99,7 +101,7 @@
                     md-sort-order="asc">
                     <md-table-toolbar>
                         <div class="md-title">Transactions
-                            <p class="md-subhead">People who voted for this candidate</p>
+                            <p class="md-subhead">All transactions of this candidate</p>
                         </div>
                     </md-table-toolbar>
                     <md-table-row
@@ -115,10 +117,6 @@
                             <router-link :to="'/voter/' + item.voter">{{ item.voter }}</router-link>
                         </md-table-cell>
                         <md-table-cell
-                            md-label="Candidate">
-                            {{ item.candidate }}
-                        </md-table-cell>
-                        <md-table-cell
                             md-label="Event"
                             md-sort-by="event">
                             <md-chip>{{ item.event }}</md-chip>
@@ -129,18 +127,20 @@
                             md-sort-by="cap">
                             {{ item.cap }} $XDC
                         </md-table-cell>
+                        <md-table-cell
+                            md-label="">
+                            <md-button
+                                :href="'http://explorer.XinFin.com/txs/' + item.tx"
+                                target="_blank"
+                                class="md-icon-button">
+                                <md-icon>remove_red_eye</md-icon>
+                                <md-tooltip md-direction="right">See this transactions on XDC Explorer</md-tooltip>
+                            </md-button>
+                        </md-table-cell>
                     </md-table-row>
                 </md-table>
             </div>
         </div>
-        <md-dialog-prompt
-            :md-active.sync="voteActive"
-            v-model="voteValue"
-            md-title="How much?"
-            md-input-maxlength="30"
-            md-input-placeholder="Type $XDC..."
-            md-confirm-text="Confirm"
-            @md-confirm="vote()"/>
         <md-dialog-prompt
             :md-active.sync="unvoteActive"
             v-model="unvoteValue"
@@ -198,6 +198,7 @@ export default {
             txs.data.map((tx, idx) => {
                 self.transactions.push({
                     id: idx + 1,
+                    tx: tx.tx,
                     voter: tx.voter,
                     candidate: tx.candidate,
                     event: tx.event,
@@ -215,24 +216,6 @@ export default {
     mounted () {
     },
     methods: {
-        vote: async function () {
-            let self = this
-            let candidate = this.candidate
-            let value = this.voteValue
-
-            try {
-                let account = await self.getAccount()
-                let contract = await self.XDCValidator.deployed()
-                await contract.vote(candidate, {
-                    from: account,
-                    value: parseFloat(value) * 10 ** 18
-                })
-                let cap = await contract.getCandidateCap.call(candidate, { from: account })
-                self.cap = String(cap / 10 ** 18)
-            } catch (e) {
-                console.log(e)
-            }
-        },
         unvote: async function () {
             let self = this
             let candidate = this.candidate
