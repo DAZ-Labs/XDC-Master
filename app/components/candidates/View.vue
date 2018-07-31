@@ -48,8 +48,9 @@
 
                     <md-card-actions>
                         <md-button
-                            class="md-raised md-accent"
-                            @click="unvoteActive = true;"><md-icon>arrow_downward</md-icon> Unvote</md-button>
+                            v-if="voted > 0"
+                            :to="'/unvoting/' + candidate"
+                            class="md-raised md-accent"><md-icon>arrow_downward</md-icon> Unvote</md-button>
                         <md-button
                             :to="'/voting/' + candidate"
                             class="md-raised md-primary"><md-icon>arrow_upward</md-icon> Vote</md-button>
@@ -92,7 +93,7 @@
             </div>
             <div
                 v-if="transactions.length > 0"
-                class="md-layout-item md-xsmall-size-100">
+                class="md-layout-item md-xlarge-size-100 md-large-size-100 md-xsmall-size-100">
                 <md-table
                     v-model="transactions"
                     md-card
@@ -119,7 +120,8 @@
                         <md-table-cell
                             md-label="Event"
                             md-sort-by="event">
-                            <md-chip>{{ item.event }}</md-chip>
+                            <md-chip
+                                :class="getChipClass(item.event)">{{ item.event }}</md-chip>
                         </md-table-cell>
                         <md-table-cell
                             md-numeric
@@ -134,21 +136,13 @@
                                 target="_blank"
                                 class="md-icon-button">
                                 <md-icon>remove_red_eye</md-icon>
-                                <md-tooltip md-direction="right">See this transactions on XDC Explorer</md-tooltip>
+                                <md-tooltip md-direction="right">View on XDC Explorer</md-tooltip>
                             </md-button>
                         </md-table-cell>
                     </md-table-row>
                 </md-table>
             </div>
         </div>
-        <md-dialog-prompt
-            :md-active.sync="unvoteActive"
-            v-model="unvoteValue"
-            md-title="How much?"
-            md-input-maxlength="30"
-            md-input-placeholder="Type $XDC..."
-            md-confirm-text="Confirm"
-            @md-confirm="unvote()"/>
     </div>
 </template>
 <script>
@@ -159,7 +153,6 @@ export default {
         return {
             voteActive: false,
             voteValue: 1,
-            unvoteActive: false,
             unvoteValue: 1,
             voters: [],
             transactions: [],
@@ -175,7 +168,7 @@ export default {
     created: async function () {
         let self = this
         try {
-            let candidate = self.$route.params.address
+            let candidate = self.candidate
             let account = await self.getAccount()
             let c = await axios.get(`/api/candidates/${candidate}`)
             self.cap = parseFloat(c.data.capacity) / 10 ** 18
@@ -187,6 +180,9 @@ export default {
                     cap: (v.capacity / 10 ** 18)
                 })
                 self.totalVoted += (v.capacity / 10 ** 18)
+                if (v.voter === account) {
+                    self.voted += (parseFloat(v.capacity) / 10 ** 18)
+                }
             })
             self.voters.sort((a, b) => {
                 return b.cap - a.cap
@@ -204,10 +200,6 @@ export default {
                     event: tx.event,
                     cap: (tx.capacity / 10 ** 18)
                 })
-
-                if (tx.voter === account) {
-                    self.voted += (parseFloat(tx.capacity) / 10 ** 18)
-                }
             })
         } catch (e) {
             console.log(e)
@@ -216,20 +208,15 @@ export default {
     mounted () {
     },
     methods: {
-        unvote: async function () {
-            let self = this
-            let candidate = this.candidate
-            let value = this.voteValue
-
-            try {
-                let account = await self.getAccount()
-                let contract = await self.XDCValidator.deployed()
-                await contract.unvote(candidate, String(parseFloat(value) * 10 ** 18), { from: account })
-                let cap = await contract.getCandidateCap.call(candidate, { from: account })
-                self.cap = String(cap / 10 ** 18)
-            } catch (e) {
-                console.log(e)
+        getChipClass (event) {
+            let clazz = ''
+            if (event === 'Vote') {
+                clazz = 'md-primary'
+            } else if (event === 'Unvote') {
+                clazz = 'md-accent'
             }
+
+            return clazz
         }
     }
 }
