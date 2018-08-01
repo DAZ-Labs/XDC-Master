@@ -4,8 +4,8 @@
     "port": 3001
   },
   "blockchain": {
-      "rpc": "#",
-      "networkId": 40686
+      "rpc": "https://testnet.XinFin.com",
+      "networkId": 89
   },
   "db": {
     "uri": "mongodb://mongodb:27017/governance"
