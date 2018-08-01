@@ -1,6 +1,17 @@
 <template>
     <div>
-        <div class="table-container md-layout md-gutter md-alignment-top-center">
+        <md-empty-state
+            v-if="this.$parent.isCandidate && !this.$parent.showProgressBar"
+            md-icon="account_circle"
+            md-label="You are a candidate"
+            md-description="You are a candidate, so you do not need to apply again">
+            <md-button
+                :to="'/candidate/' + account"
+                class="md-primary md-raised">Your Profile</md-button>
+        </md-empty-state>
+        <div
+            v-if="!this.$parent.isCandidate"
+            class="table-container md-layout md-gutter md-alignment-top-center">
             <form
                 novalidate
                 class="md-layout-item md-xlarge-size-50 md-large-size-50 md-xsmall-size-100"
@@ -51,14 +62,17 @@
                     </md-card-content>
                     <md-card-actions>
                         <md-button
-                            v-if="!isCandidate"
+                            v-if="!this.$parent.isCandidate"
+                            :disabled="this.$parent.showProgressBar"
                             class="md-raised md-primary"
                             type="submit"><md-icon>arrow_upward</md-icon> Apply</md-button>
                     </md-card-actions>
                 </md-card>
             </form>
         </div>
-        <div class="md-layout md-gutter md-alignment-center">
+        <div
+            v-if="!this.$parent.isCandidate"
+            class="md-layout md-gutter md-alignment-center">
             <div class="md-layout-item md-xlarge-size-50 md-large-size-50 md-xsmall-size-100">
                 <md-card>
                     <md-card-header>
@@ -83,7 +97,7 @@
         </div>
         <md-snackbar
             :md-active.sync="showSnackbar"
-            md-position="center"
+            md-position="left"
             md-persistent>
             <span>{{ snackBarMessage }}</span>
             <md-button
@@ -103,9 +117,10 @@ export default {
     mixins: [validationMixin],
     data () {
         return {
+            account: '',
+            isNotReady: !this.web3,
             showSnackbar: false,
             snackBarMessage: '',
-            isCandidate: false,
             applyValue: 10000
         }
     },
@@ -119,12 +134,9 @@ export default {
     watch: {},
     updated () {},
     created: async function () {
-        let self = this
-
         try {
-            let account = await self.getAccount()
-            let contract = await self.XDCValidator.deployed()
-            self.isCandidate = await contract.isCandidate(account, { from: account })
+            let account = await this.getAccount()
+            this.account = account
         } catch (e) {
             console.log(e)
         }
@@ -152,18 +164,30 @@ export default {
             let self = this
             let value = this.applyValue
             try {
+                if (self.isNotReady) {
+                    self.$router.push('/setting')
+                }
+
+                self.$parent.showProgressBar = true
+
                 let account = await self.getAccount()
                 let contract = await self.XDCValidator.deployed()
-                let result = await contract.propose({
-                    from: account,
+                let rs = await contract.propose({
+                    from : account,
                     value: parseFloat(value) * 10 ** 18
                 })
-
-                self.isCandidate = true
                 self.showSnackbar = true
-                self.snackBarMessage = result.tx ? 'You have successfully applied!'
+                self.snackBarMessage = rs.tx ? 'You have successfully applied!'
                     : 'An error occurred while applying, please try again'
+                setTimeout(() => {
+                    self.$parent.isCandidate = rs.tx !== 'undefined'
+                    self.$parent.showProgressBar = false
+                    if (rs.tx) {
+                        self.$router.push(`/candidate/${account}`)
+                    }
+                }, 2000)
             } catch (e) {
+                self.$parent.showProgressBar = false
                 self.showSnackbar = true
                 self.snackBarMessage = 'An error occurred while applying, please try again'
                 console.log(e)
