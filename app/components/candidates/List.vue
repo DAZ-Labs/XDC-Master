@@ -29,7 +29,7 @@
                 <md-card md-with-hover>
                     <md-card-header>
                         <p class="md-subheading">epoch</p>
-                        <p class="md-display-1">990</p>
+                        <p class="md-display-1">990 blocks</p>
                     </md-card-header>
                 </md-card>
             </div>
@@ -73,12 +73,24 @@
                             md-sort-by="cap">{{ item.cap }} $XDC
                         </md-table-cell>
                         <md-table-cell
-                            md-label="Status"
-                            md-sort-by="cap">{{ item.status }}
+                            md-label="Status">
+                            <md-chip :class="item.status == 'PROPOSED' ? 'md-primary' : 'md-accent'">
+                                {{ item.status }}</md-chip>
                         </md-table-cell>
-                        <md-table-cell><md-button
-                            :to="'/voting/' + item.address"
-                            class="md-raised md-primary">Vote</md-button></md-table-cell>
+                        <md-table-cell>
+                            <md-button
+                                v-if="item.status === 'PROPOSED'"
+                                :to="'/voting/' + item.address"
+                                class="md-raised md-primary">Vote</md-button>
+                            <md-button
+                                v-if="item.status === 'PROPOSED'"
+                                :to="'/resign/' + item.address"
+                                class="md-raised">Resign</md-button>
+                            <md-button
+                                v-if="item.status === 'RESIGNED'"
+                                :to="'/withdraw/' + item.address"
+                                class="md-raised">Withdraw</md-button>
+                        </md-table-cell>
                     </md-table-row>
                 </md-table>
             </div>
@@ -117,6 +129,7 @@ export default {
             candidates.data.map(async (candidate) => {
                 self.candidates.push({
                     address: candidate.candidate,
+                    backer: candidate.backer,
                     status: candidate.status,
                     cap: (candidate.capacity / 10 ** 18)
                 })
