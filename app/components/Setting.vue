@@ -16,12 +16,17 @@
                             v-model="provider"
                             name="provider">
                             <md-option value="metamask">Metamask</md-option>
-                            <md-option value="mainnet">XinFin Mainnet</md-option>
+                            <!--md-option value="mainnet">XinFin Mainnet</md-option-->
                             <md-option value="testnet">XinFin Testnet</md-option>
                         </md-select>
+                        <span
+                            v-if="provider !== 'metamask'"
+                            class="md-helper-text">
+                            Using node at https://testnet.XinFin.com.
+                        </span>
                     </md-field>
                     <md-field v-if="provider !== 'metamask'">
-                        <label>MNEMONIC</label>
+                        <label>MNEMONIC/PrivateKey</label>
                         <md-input v-model="mnemonic"/>
                     </md-field>
                     <div
@@ -54,15 +59,16 @@
 <script>
 import Web3 from 'web3'
 const HDWalletProvider = require('truffle-hdwallet-provider')
+const PrivateKeyProvider = require('truffle-privatekey-provider')
 const networks = {
-    mainnet: '#',
+    // mainnet: '#',
     testnet: '#'
 }
 export default {
     name: 'App',
     data () {
         return {
-            isReady: this.web3,
+            isReady: !!this.web3,
             mnemonic: '',
             provider: 'metamask',
             address: '',
@@ -103,7 +109,11 @@ export default {
                     wjs = new Web3(p)
                 }
             } else {
-                const walletProvider = new HDWalletProvider(self.mnemonic, networks[self.provider])
+                const walletProvider =
+                    (self.mnemonic.indexOf(' ') >= 0)
+                        ? new HDWalletProvider(self.mnemonic, networks[self.provider])
+                        : new PrivateKeyProvider(self.mnemonic, networks[self.provider])
+
                 wjs = new Web3(walletProvider)
             }
             self.setupProvider(this.provider, wjs)

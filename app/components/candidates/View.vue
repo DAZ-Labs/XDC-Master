@@ -44,7 +44,7 @@
                                 <md-icon>offline_bolt</md-icon>
                                 <div class="md-list-item-text">
                                     <span>{{ candidate.status }}</span>
-                                    <span>Status</span>
+                                    <span>Node Status</span>
                                 </div>
                             </md-list-item>
                             <md-list-item>
@@ -171,6 +171,53 @@
                 </md-table>
             </div>
             <div
+                class="md-layout-item md-xlarge-size-100 md-large-size-100
+                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
+                <md-card>
+                    <md-card-header>
+                        <md-content>
+                            <div class="md-headline">
+                                CPUs
+                            </div>
+                        </md-content>
+                    </md-card-header>
+
+                    <md-card-content>
+                        <iframe
+                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
+                            orgId=1&panelId=2&theme=light"
+                            width="1200"
+                            frameborder="0" />
+                        <iframe
+                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
+                            orgId=1&panelId=6&theme=light"
+                            width="1200"
+                            frameborder="0" />
+                    </md-card-content>
+                </md-card>
+            </div>
+            <div
+                class="md-layout-item md-xlarge-size-100 md-large-size-100
+                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
+                <md-card>
+                    <md-card-header>
+                        <md-content>
+                            <div class="md-headline">
+                                Memory
+                            </div>
+                        </md-content>
+                    </md-card-header>
+
+                    <md-card-content>
+                        <iframe
+                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin
+                            ?orgId=1&panelId=4&theme=light"
+                            width="1200"
+                            frameborder="0" />
+                    </md-card-content>
+                </md-card>
+            </div>
+            <div
                 v-if="transactions.length > 0"
                 class="md-layout-item md-xlarge-size-100 md-large-size-100
                 md-medium-size-70 md-small-size-90 md-xsmall-size-90">
@@ -207,7 +254,7 @@
                             md-numeric
                             md-label="Capacity"
                             md-sort-by="cap">
-                            {{ item.cap }} $XDC
+                            {{ isNaN(item.cap) ? '--' : item.cap + ' $XDC' }}
                         </md-table-cell>
                         <md-table-cell
                             md-label="">
@@ -231,7 +278,7 @@ export default {
     name: 'App',
     data () {
         return {
-            isReady: this.web3,
+            isReady: !!this.web3,
             voteActive: false,
             voteValue: 1,
             unvoteValue: 1,
