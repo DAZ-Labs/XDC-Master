@@ -68,7 +68,6 @@ export default {
             resignActive: false,
             showSnackbar: false,
             snackBarMessage: '',
-            candidateCap: 10000,
             coinbase: this.$route.params.address
         }
     },
@@ -80,11 +79,7 @@ export default {
         try {
             if (self.isReady) {
                 let account = await self.getAccount()
-                let contract = await self.XDCValidator.deployed()
-                let cap = await contract.getCandidateCap(account)
-
                 self.account = account
-                self.candidateCap = String(cap / 10 ** 18)
             }
 
             let candidate = await axios.get(`/api/candidates/${self.coinbase}`)

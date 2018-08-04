@@ -58,25 +58,13 @@ export default {
             withdrawActive: false,
             showSnackbar: false,
             snackBarMessage: '',
-            candidateCap: 10000,
             coinbase: this.$route.params.address
         }
     },
     computed: { },
     watch: {},
     updated () {},
-    created: async function () {
-        let self = this
-        try {
-            let account = await self.getAccount()
-            let contract = await self.XDCValidator.deployed()
-            let cap = await contract.getCandidateCap(account)
-
-            self.candidateCap = String(cap / 10 ** 18)
-        } catch (e) {
-            console.log(e)
-        }
-    },
+    created: async function () {},
     mounted () {
     },
     methods: {
