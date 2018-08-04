@@ -1,21 +1,104 @@
 'use strict'
 
-const { Validator, chain } = require('../models/blockchain/validator')
+const { Validator } = require('../models/blockchain/validator')
+const { BlockSigner } = require('../models/blockchain/blockSigner')
+const chain = require('../models/blockchain/chain')
 const db = require('../models/mongodb')
 const config = require('config')
 
-async function watch () {
+async function watchBlockSigner () {
+    let bs = await BlockSigner.deployed()
+    let cs = await db.CrawlState.findOne({
+        smartContractAddress: bs.address
+    })
+    const blockNumber = parseInt((cs || {}).blockNumber || 0) + 1
+    console.info('BlockSigner - Listen events from block number %s ...', blockNumber)
+    const allEvents = bs.allEvents({
+        fromBlock: blockNumber,
+        toBlock: 'latest'
+    })
+    return allEvents.watch(async (err, res) => {
+        if (err || !(res || {}).args) {
+            console.error(err, res)
+            return false
+        }
+        console.info('BlockSigner - New event %s from block %s', res.event, res.blockNumber)
+        if (cs) {
+            cs.blockNumber = res.blockNumber
+        } else {
+            cs = new db.CrawlState({
+                smartContractAddress: bs.address,
+                blockNumber: res.blockNumber
+            })
+        }
+        let signer = res.args._signer
+        let bN = String(res.args.blockNumber) // XDC: change param name
+        cs.save()
+        return db.BlockSigner.update({
+            smartContractAddress: bs.address,
+            blockNumber: bN
+        }, {
+            $set: {
+                smartContractAddress: bs.address,
+                blockNumber: bN
+            },
+            $addToSet: { signers: signer }
+        }, { upsert: true })
+    })
+}
+
+async function watchValidator () {
     let v = await Validator.deployed()
     let cs = await db.CrawlState.findOne({
         smartContractAddress: v.address
     })
+
     const blockNumber = parseInt((cs || {}).blockNumber || 0) + 1
-    console.info('Listen events from block number %s ...', blockNumber)
+    console.info('XDCValidator - Listen events from block number %s ...', blockNumber)
     const allEvents = v.allEvents({
         fromBlock: blockNumber,
         toBlock: 'latest'
     })
 
+    return allEvents.watch(async (err, res) => {
+        if (err || !(res || {}).args) {
+            console.error(err, res)
+            return false
+        }
+        console.info('New event %s from block %s', res.event, res.blockNumber)
+        if (cs) {
+            cs.blockNumber = res.blockNumber
+        } else {
+            cs = new db.CrawlState({
+                smartContractAddress: v.address,
+                blockNumber: res.blockNumber
+            })
+        }
+        let event = res.event
+        let candidate = res.args._candidate
+        let voter = res.args._voter
+        let owner = res.args._owner
+        let capacity = res.args._cap
+        let tx = new db.Transaction({
+            smartContractAddress: v.address,
+            blockNumber: res.blockNumber,
+            tx: res.transactionHash,
+            event: event,
+            voter: voter,
+            owner: owner,
+            candidate: candidate,
+            capacity: capacity
+        })
+        tx.save()
+        cs.save()
+        if (event === 'Vote' || event === 'Unvote') {
+            updateVoterCap(candidate, voter)
+        }
+        updateCandidateInfo(candidate)
+    })
+}
+
+async function watch () {
     chain.eth.filter('latest').watch(async (err, block) => {
         if (err) {
             return false
@@ -37,42 +120,8 @@ async function watch () {
         }
     })
 
-    return allEvents.watch((err, res) => {
-        if (err || !(res || {}).args) {
-            console.error(err, res)
-            return false
-        }
-        console.info('New event %s from block %s', res.event, res.blockNumber)
-        if (cs) {
-            cs.blockNumber = res.blockNumber
-        } else {
-            cs = new db.CrawlState({
-                smartContractAddress: v.address,
-                blockNumber: res.blockNumber
-            })
-        }
-        let event = res.event
-        let candidate = res.args._candidate
-        let voter = res.args._voter
-        let backer = res.args._backer
-        let capacity = res.args._cap
-        let tx = new db.Transaction({
-            smartContractAddress: v.address,
-            blockNumber: res.blockNumber,
-            tx: res.transactionHash,
-            event: event,
-            voter: voter,
-            backer: backer,
-            candidate: candidate,
-            capacity: capacity
-        })
-        tx.save()
-        cs.save()
-        if (event === 'Vote' || event === 'Unvote') {
-            updateVoterCap(candidate, voter)
-        }
-        updateCandidateInfo(candidate)
-    })
+    watchBlockSigner()
+    return watchValidator()
 }
 
 async function updateCandidateInfo (candidate) {
@@ -80,7 +129,7 @@ async function updateCandidateInfo (candidate) {
         let validator = await Validator.deployed()
         let capacity = await validator.getCandidateCap.call(candidate)
         let nodeUrl = await validator.getCandidateNodeUrl.call(candidate)
-        let backer = await validator.getCandidateBacker.call(candidate)
+        let owner = await validator.getCandidateOwner.call(candidate)
         let status = await validator.isCandidate.call(candidate)
         let result
         console.info('Update candidate %s capacity %s', candidate, String(capacity))
@@ -95,7 +144,7 @@ async function updateCandidateInfo (candidate) {
                     capacity: String(capacity),
                     nodeUrl: nodeUrl,
                     status: (status) ? 'PROPOSED' : 'RESIGNED',
-                    backer: String(backer)
+                    owner: String(owner)
                 }
             }, { upsert: true })
         } else {

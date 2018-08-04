@@ -184,12 +184,12 @@
 
                     <md-card-content>
                         <iframe
-                            src="https://grafana-testnet.XinFIn.com/d-solo/GaPA-Y4mk/XinFIn?
+                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
                             orgId=1&panelId=2&theme=light"
                             width="1200"
                             frameborder="0" />
                         <iframe
-                            src="https://grafana-testnet.XinFIn.com/d-solo/GaPA-Y4mk/XinFIn?
+                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
                             orgId=1&panelId=6&theme=light"
                             width="1200"
                             frameborder="0" />
@@ -210,7 +210,7 @@
 
                     <md-card-content>
                         <iframe
-                            src="https://grafana-testnet.XinFIn.com/d-solo/GaPA-Y4mk/XinFIn
+                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin
                             ?orgId=1&panelId=4&theme=light"
                             width="1200"
                             frameborder="0" />
@@ -259,7 +259,7 @@
                         <md-table-cell
                             md-label="">
                             <md-button
-                                :href="'https://explorer-testnet.XinFIn.com/txs/' + item.tx"
+                                :href="'https://explorer-testnet.XinFin.com/txs/' + item.tx"
                                 target="_blank"
                                 class="md-icon-button">
                                 <md-icon>remove_red_eye</md-icon>

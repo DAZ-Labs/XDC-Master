@@ -9,7 +9,9 @@
                 <md-card md-with-hover>
                     <md-card-header>
                         <p class="md-subheading">Current Block</p>
-                        <p class="md-display-1">#{{ blockNumber }}</p>
+                        <router-link :to="'/blocksigners'">
+                            <p class="md-display-1">#{{ blockNumber }}</p>
+                        </router-link>
                     </md-card-header>
                 </md-card>
             </div>
@@ -93,11 +95,11 @@
                                 :to="'/voting/' + item.address"
                                 class="md-raised md-primary">Vote</md-button>
                             <md-button
-                                v-if="item.status === 'PROPOSED' && item.backer === account"
+                                v-if="item.status === 'PROPOSED' && item.owner === account"
                                 :to="'/resign/' + item.address"
                                 class="md-raised">Resign</md-button>
                             <md-button
-                                v-if="item.status === 'RESIGNED' && item.backer === account"
+                                v-if="item.status === 'RESIGNED' && item.owner === account"
                                 :to="'/withdraw/' + item.address"
                                 class="md-raised">Withdraw</md-button>
                         </md-table-cell>
@@ -149,7 +151,7 @@ export default {
                 let isMasternode = (signers.data.signers || []).indexOf(candidate.candidate) >= 0
                 self.candidates.push({
                     address: candidate.candidate,
-                    backer: candidate.backer,
+                    owner: candidate.owner,
                     status: candidate.status,
                     isMasternode: isMasternode,
                     name: candidate.name || 'Anonymous',

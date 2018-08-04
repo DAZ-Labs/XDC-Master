@@ -18,14 +18,14 @@
                             <md-option
                                 v-if="!isElectron"
                                 value="metamask">Metamask</md-option>
-                            <!--md-option value="mainnet">XinFIn Mainnet</md-option-->
-                            <md-option value="testnet">XinFIn Testnet</md-option>
+                            <!--md-option value="mainnet">XinFin Mainnet</md-option-->
+                            <md-option value="testnet">XinFin Testnet</md-option>
                             <md-option value="custom">Custom Network</md-option>
                         </md-select>
                         <span
                             v-if="provider === 'testnet'"
                             class="md-helper-text">
-                            Using node at https://testnet.XinFIn.com.
+                            Using node at https://testnet.XinFin.com.
                         </span>
                     </md-field>
                     <md-field v-if="provider === 'custom'">
@@ -42,7 +42,7 @@
                             <a
                                 href="http://bitly.com/2gmvrGG"
                                 target="_blank">Metamask Extension</a>
-                            then connect it to XinFIn Mainnet or Testnet.</p>
+                            then connect it to XinFin Mainnet or Testnet.</p>
                     </div>
                 </md-card-content>
 
@@ -77,8 +77,8 @@ export default {
             address: '',
             balance: 0,
             networks: {
-                // mainnet: 'https://core.XinFIn.com',
-                testnet: 'https://testnet.XinFIn.com',
+                // mainnet: 'https://core.XinFin.com',
+                testnet: 'https://testnet.XinFin.com',
                 custom: 'http://localhost:8545'
             }
         }

@@ -1,5 +1,5 @@
-## XinFIn Governance DApp
-This is Governance Dapp for XinFIn. Full-Node can apply to become a candidate for masternode. Coin Holder can vote for candidates to become masternodes. See the detail from technical Whitepaper: [https://XinFIn.com/docs/technical-whitepaper--1.0.pdf](https://XinFIn.com/docs/technical-whitepaper--1.0.pdf)
+## XinFin Governance DApp
+This is Governance Dapp for XinFin. Full-Node can apply to become a candidate for masternode. Coin Holder can vote for candidates to become masternodes. See the detail from technical Whitepaper: [https://XinFin.com/docs/technical-whitepaper--1.0.pdf](https://XinFin.com/docs/technical-whitepaper--1.0.pdf)
 
 ## Requirements
 - MongoDB
@@ -16,7 +16,7 @@ Update `local.json` file to support your environment
 truffle deploy --reset --network XDC
 npm install
 ```
-Note: before deploying to XinFIn testnet, make sure you have $XDC in the wallet. If not, get free at https://faucet.XinFIn.com
+Note: before deploying to XinFin testnet, make sure you have $XDC in the wallet. If not, get free at https://faucet.XinFin.com
 
 ## Run
 ```

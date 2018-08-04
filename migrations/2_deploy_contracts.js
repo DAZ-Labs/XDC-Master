@@ -1,5 +1,7 @@
 var XDCValidator = artifacts.require('./XDCValidator');
+var BlockSigner = artifacts.require('./BlockSigner');
 
 module.exports = function(deployer) {
-    return deployer.deploy(XDCValidator, [ ], [ ]);
+    deployer.deploy(BlockSigner)
+    return deployer.deploy(XDCValidator, [ ], [ ])
 };

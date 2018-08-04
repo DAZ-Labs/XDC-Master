@@ -1,7 +1,7 @@
 {
-    "name": "XinFIn-governance",
+    "name": "XinFin-governance",
     "version": "1.0.0",
-    "description": "XinFIn Governance DApp",
+    "description": "XinFin Governance DApp",
     "main": "elect.js",
     "directories": {
         "test": "test"
@@ -18,14 +18,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/XinFIn/XDC-governance.git"
+        "url": "git+https://github.com/XinFin/XDC-governance.git"
     },
     "author": "",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/XinFIn/XDC-governance/issues"
+        "url": "https://github.com/XinFin/XDC-governance/issues"
     },
-    "homepage": "https://github.com/XinFIn/XDC-governance#readme",
+    "homepage": "https://github.com/XinFin/XDC-governance#readme",
     "dependencies": {
         "bignumber.js": "^7.2.1",
         "body-parser": "^1.18.2",
