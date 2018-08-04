@@ -68,7 +68,7 @@ export default {
                         <strong>${transaction.capacity / 10 ** 18} $XDC</strong> for candidate 
                         <a href="/candidate/${transaction.candidate}">${transaction.candidate}</a> successfully.
                         <br/><br/>
-                        Transaction Hash: <a href="https://explorer-testnet.XinFin.com/txs/${self.tx}"
+                        Transaction Hash: <a href="https://explorer-testnet.XinFIn.com/txs/${self.tx}"
                         target="_blank">${self.tx}</a>`
                         self.buttonText = 'View all Candidates'
                     } else {

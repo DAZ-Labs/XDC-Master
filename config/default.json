@@ -4,7 +4,7 @@
     "port": 3001
   },
   "blockchain": {
-      "rpc": "https://testnet.XinFin.com",
+      "rpc": "https://testnet.XinFIn.com",
       "networkId": 89
   },
   "db": {
@@ -15,5 +15,14 @@
       "port": "6379",
       "password": null,
       "prefix": "XDCWallet"
+  },
+  "truffle": {
+    "mnemonic": "",
+    "minCandidateCap": 50000,
+    "maxValidatorNumber": 99,
+    "candidateWithdrawDelay": 100,
+    "epochNumber": 990,
+    "blockTimeSecret": 900,
+    "blockTimeOpening": 950
   }
 }
