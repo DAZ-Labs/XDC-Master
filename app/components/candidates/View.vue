@@ -259,7 +259,7 @@
                         <md-table-cell
                             md-label="">
                             <md-button
-                                :href="'http://explorer.XinFin.com/txs/' + item.tx"
+                                :href="'http://explorer-testnet.XinFin.com/txs/' + item.tx"
                                 target="_blank"
                                 class="md-icon-button">
                                 <md-icon>remove_red_eye</md-icon>
