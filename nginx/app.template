@@ -4,7 +4,7 @@ upstream be_validators {
 
 server {
     listen 443 ssl http2;
-    server_name validators-testnet.XinFin.com;
+    server_name validators-testnet.XinFIn.com;
     gzip on;
     gzip_proxied any;
     gzip_types
@@ -21,8 +21,8 @@ server {
         image/svg+xml;
 
     ssl on;
-    ssl_certificate /certs/validators-testnet.XinFin.com.crt;
-    ssl_certificate_key /certs/validators-testnet.XinFin.com.key;
+    ssl_certificate /certs/validators-testnet.XinFIn.com.crt;
+    ssl_certificate_key /certs/validators-testnet.XinFIn.com.key;
 
 
     location / {

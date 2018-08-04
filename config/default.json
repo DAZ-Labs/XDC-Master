@@ -4,7 +4,7 @@
     "port": 3001
   },
   "blockchain": {
-      "rpc": "#",
+      "rpc": "https://testnet.XinFIn.com",
       "networkId": 89
   },
   "db": {

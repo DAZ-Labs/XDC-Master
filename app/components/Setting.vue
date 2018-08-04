@@ -18,14 +18,19 @@
                             <md-option
                                 v-if="!isElectron"
                                 value="metamask">Metamask</md-option>
-                            <!--md-option value="mainnet">XinFin Mainnet</md-option-->
-                            <md-option value="testnet">XinFin Testnet</md-option>
+                            <!--md-option value="mainnet">XinFIn Mainnet</md-option-->
+                            <md-option value="testnet">XinFIn Testnet</md-option>
+                            <md-option value="custom">Custom Network</md-option>
                         </md-select>
                         <span
-                            v-if="provider !== 'metamask'"
+                            v-if="provider === 'testnet'"
                             class="md-helper-text">
-                            Using node at https://testnet.XinFin.com.
+                            Using node at https://testnet.XinFIn.com.
                         </span>
+                    </md-field>
+                    <md-field v-if="provider === 'custom'">
+                        <label>Network Url</label>
+                        <md-input v-model="networks.custom"/>
                     </md-field>
                     <md-field v-if="provider !== 'metamask'">
                         <label>MNEMONIC/PrivateKey</label>
@@ -37,7 +42,7 @@
                             <a
                                 href="http://bitly.com/2gmvrGG"
                                 target="_blank">Metamask Extension</a>
-                            then connect it to XinFin Mainnet or Testnet.</p>
+                            then connect it to XinFIn Mainnet or Testnet.</p>
                     </div>
                 </md-card-content>
 
@@ -62,10 +67,6 @@
 import Web3 from 'web3'
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
-const networks = {
-    // mainnet: '#',
-    testnet: '#'
-}
 export default {
     name: 'App',
     data () {
@@ -74,7 +75,12 @@ export default {
             mnemonic: '',
             provider: 'metamask',
             address: '',
-            balance: 0
+            balance: 0,
+            networks: {
+                // mainnet: 'https://core.XinFIn.com',
+                testnet: 'https://testnet.XinFIn.com',
+                custom: 'http://localhost:8545'
+            }
         }
     },
     computed: {},
@@ -113,8 +119,8 @@ export default {
             } else {
                 const walletProvider =
                     (self.mnemonic.indexOf(' ') >= 0)
-                        ? new HDWalletProvider(self.mnemonic, networks[self.provider])
-                        : new PrivateKeyProvider(self.mnemonic, networks[self.provider])
+                        ? new HDWalletProvider(self.mnemonic, self.networks[self.provider])
+                        : new PrivateKeyProvider(self.mnemonic, self.networks[self.provider])
 
                 wjs = new Web3(walletProvider)
             }

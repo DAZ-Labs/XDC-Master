@@ -16,7 +16,7 @@ services:
 
   validators:
     build: ./
-    image: XinFin/validators
+    image: XinFIn/validators
     restart: "on-failure:10"
     depends_on:
       - mongodb

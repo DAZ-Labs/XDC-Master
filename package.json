@@ -1,7 +1,7 @@
 {
-    "name": "XinFin-governance",
+    "name": "XinFIn-governance",
     "version": "1.0.0",
-    "description": "XinFin Governance DApp",
+    "description": "XinFIn Governance DApp",
     "main": "elect.js",
     "directories": {
         "test": "test"
@@ -12,20 +12,20 @@
         "nodemon": "./node_modules/.bin/nodemon index.js",
         "crawl": "./node_modules/.bin/nodemon ./services/crawl.js",
         "webpack": "node ./node_modules/webpack/bin/webpack.js -d --w",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "echo \"No test specified\" && exit 0",
         "dev": "npm run crawl & npm run nodemon & cross-env NODE_ENV=development webpack-dev-server --hot --host 0.0.0.0 --port 3000",
         "build": "cross-env NODE_ENV=production webpack -p --progress --hide-modules"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/XinFin/XDC-governance.git"
+        "url": "git+https://github.com/XinFIn/XDC-governance.git"
     },
     "author": "",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/XinFin/XDC-governance/issues"
+        "url": "https://github.com/XinFIn/XDC-governance/issues"
     },
-    "homepage": "https://github.com/XinFin/XDC-governance#readme",
+    "homepage": "https://github.com/XinFIn/XDC-governance#readme",
     "dependencies": {
         "bignumber.js": "^7.2.1",
         "body-parser": "^1.18.2",
