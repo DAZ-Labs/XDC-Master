@@ -13,13 +13,14 @@ import UnvotingView from './components/voters/Unvoting'
 import ConfirmView from './components/voters/Confirm'
 import Setting from './components/Setting.vue'
 
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.css'
-import 'vue-material/dist/theme/default.css'
+import BootstrapVue from 'bootstrap-vue'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 import Web3 from 'web3'
 import { default as contract } from 'truffle-contract'
 import XDCValidatorArtifacts from '../build/contracts/XDCValidator.json'
-Vue.use(VueMaterial)
+
+Vue.use(BootstrapVue)
 
 Vue.prototype.XDCValidator = contract(XDCValidatorArtifacts)
 Vue.prototype.isElectron = !!(window && window.process && window.process.type)
