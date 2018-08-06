@@ -42,7 +42,7 @@
                                             min="0.1"
                                             step="0.1"
                                             type="number"/>
-                                        <md-icon md-src="/app/assets/XDC.svg" />
+                                        <md-icon md-src="/app/assets/img/XDC.svg" />
                                         <md-tooltip>
                                             How much $XDC would you like to vote for this candidate?</md-tooltip>
                                         <span

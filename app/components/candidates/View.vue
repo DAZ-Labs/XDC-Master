@@ -48,14 +48,14 @@
                                 </div>
                             </md-list-item>
                             <md-list-item>
-                                <md-icon md-src="/app/assets/XDC.svg"/>
+                                <md-icon md-src="/app/assets/img/XDC.svg"/>
                                 <div class="md-list-item-text">
                                     <span><strong>{{ candidate.balance }}</strong> $XDC</span>
                                     <span>Balance</span>
                                 </div>
                             </md-list-item>
                             <md-list-item>
-                                <md-icon md-src="/app/assets/XDC.svg" />
+                                <md-icon md-src="/app/assets/img/XDC.svg" />
                                 <div class="md-list-item-text">
                                     <span><strong>{{ candidate.cap }}</strong> $XDC</span>
                                     <span>Capacity</span>
@@ -388,59 +388,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-
-.candidate-status {
-    cursor: pointer;
-    font-size: 0;
-    display: inline-block;
-    vertical-align: 4px;
-    width: 8px;
-    height: 8px;
-    border-radius: 100%;
-    margin-right: 2px;
-}
-
-.candidate-status-tooltip {
-    text-transform: capitalize;
-}
-
-.candidate-status--active {
-    background-color: #60d156;
-}
-
-.candidate-status--inactive {
-    opacity: .5;
-    background-color: #aaaaaa;
-}
-
-a.candidate-address.candidate-address {
-    color: rgba(0, 0, 0, .87);
-}
-
-.social-wrap a {
-    font-size: 0;
-    margin-right: 5px;
-}
-
-.social-wrap a .md-icon {
-    font-size: 24px;
-}
-
-.md-list-item-status .md-list-item-text {
-    text-transform: capitalize;
-}
-
-.md-list-item-status.md-list-item-status--active .md-icon {
-    color: #60d156;
-}
-
-.md-card:not(.md-expand-active) .candidate-expand-content {
-    margin-top: -232px !important;
-}
-
-.md-list.md-theme-default.md-double-line .md-list-item-text :nth-child(2) {
-    text-transform: capitalize;
-}
-</style>
