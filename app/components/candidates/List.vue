@@ -2,39 +2,58 @@
     <div>
         <div
             v-if="isReady"
-            class="container status-container">
+            class="container section status-section">
             <div class="row">
+                <div class="col-12">
+                    <h3 class="section-title">
+                        <i class="tm-bolt color-pink" />
+                        <span>Network Status</span>
+                    </h3>
+                </div>
                 <div class="col-md-6 col-lg-3">
-                    <b-card>
-                        <h6>Current Block</h6>
-                        <h3><router-link :to="'/blocksigners'">#{{ blockNumber }}</router-link></h3>
+                    <b-card class="XDC-card">
+                        <h6 class="XDC-card__title">Current Block</h6>
+                        <p class="XDC-card__text">
+                            <router-link :to="'/blocksigners'">#{{ blockNumber }}</router-link>
+                        </p>
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
-                    <b-card>
-                        <h6>AVG Block Time</h6>
-                        <h3>2.00 s</h3>
+                    <b-card class="XDC-card">
+                        <h6 class="XDC-card__title">AVG Block Time</h6>
+                        <p class="XDC-card__text">2.00 s</p>
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
-                    <b-card>
-                        <h6>epoch</h6>
-                        <h3>990 blocks</h3>
+                    <b-card class="XDC-card">
+                        <h6 class="XDC-card__title">epoch</h6>
+                        <p class="XDC-card__text">990 blocks</p>
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
-                    <b-card>
-                        <h6>Next Checkpoint</h6>
-                        <h3>#{{ nextCheckpoint }}</h3>
+                    <b-card class="XDC-card">
+                        <h6 class="XDC-card__title">Next Checkpoint</h6>
+                        <p class="XDC-card__text">#{{ nextCheckpoint }}</p>
                     </b-card>
                 </div>
             </div>
         </div>
         <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="section-title">
+                        <i class="tm-flag color-yellow" />
+                        <span>Candidates</span>
+                    </h3>
+                </div>
+            </div>
             <b-table
-                :items="candidates"
+                :items="sortedCandidates"
                 :fields="fields"
-                responsive >
+                :sort-by.sync="sortBy"
+                :sort-desc.sync="sortDesc"
+                class="XDC-table XDC-table--candidates"
+                stacked="md" >
 
                 <template
                     slot="index"
@@ -44,25 +63,31 @@
                 <template
                     slot="address"
                     slot-scope="data">
-                    <router-link :to="'/candidate/' + data.item.address">
+                    <router-link
+                        :to="'/candidate/' + data.item.address"
+                        class="text-truncate">
                         {{ data.item.address }}
                     </router-link>
                 </template>
 
                 <template
                     slot="cap"
-                    slot-scope="data">{{ formatCurrenctySymbol(data.item.cap) }}</template>
+                    slot-scope="data">{{ formatCurrenctySymbol(formatNumber(data.item.cap)) }}</template>
 
                 <template
                     slot="status"
                     slot-scope="data">
-                    <span
-                        v-if="!data.item.isMasternode"
-                        :class="'XDC-chip '
-                        + (data.item.status === 'PROPOSED' ? 'XDC-chip--primary' : 'XDC-chip--accent') ">
-                        {{ data.item.status }}
-                    </span>
-                    <span v-if="data.item.isMasternode">MASTERNODE</span>
+                    <div class="mt-2 mt-lg-0">
+                        <span
+                            v-if="!data.item.isMasternode"
+                            :class="'XDC-chip '
+                            + (data.item.status === 'PROPOSED' ? 'XDC-chip--primary' : 'XDC-chip--accent') ">
+                            {{ data.item.status.toLowerCase() }}
+                        </span>
+                        <span
+                            v-if="data.item.isMasternode"
+                            class="XDC-chip XDC-chip--yellow">MASTERNODE</span>
+                    </div>
                 </template>
 
                 <template
@@ -70,13 +95,16 @@
                     slot-scope="data">
                     <b-button
                         v-if="data.item.status === 'PROPOSED'"
-                        :to="`/voting/${data.item.address}`">Vote</b-button>
+                        :to="`/voting/${data.item.address}`"
+                        class="mt-3 mt-lg-0">Vote</b-button>
                     <b-button
                         v-if="data.item.status === 'PROPOSED' && data.item.owner === account"
-                        :to="`/resign/${data.item.address}`">Resign</b-button>
+                        :to="`/resign/${data.item.address}`"
+                        class="mt-3 mt-lg-0">Resign</b-button>
                     <b-button
                         v-if="data.item.status === 'RESIGNED' && data.item.owner === account"
-                        :to="`/withdraw/${data.item.address}`">Withdraw</b-button>
+                        :to="`/withdraw/${data.item.address}`"
+                        class="mt-3 mt-lg-0">Withdraw</b-button>
                 </template>
             </b-table>
         </div>
@@ -94,29 +122,37 @@ export default {
             fields: [
                 {
                     key: 'index',
-                    label: 'ID'
+                    label: 'ID',
+                    sortable: false
                 },
                 {
                     key: 'address',
-                    label: 'Address'
+                    label: 'Address',
+                    sortable: true
                 },
                 {
                     key: 'name',
-                    label: 'Name'
+                    label: 'Name',
+                    sortable: true
                 },
                 {
                     key: 'cap',
-                    label: 'Capacity'
+                    label: 'Capacity',
+                    sortable: true
                 },
                 {
                     key: 'status',
-                    label: 'Status'
+                    label: 'Status',
+                    sortable: false
                 },
                 {
                     key: 'action',
-                    label: ''
+                    label: '',
+                    sortable: false
                 }
             ],
+            sortBy: 'cap',
+            sortDesc: true,
             isReady: !!this.web3,
             account: '',
             blockNumber: 0,
@@ -154,7 +190,7 @@ export default {
                     status: candidate.status,
                     isMasternode: isMasternode,
                     name: candidate.name || 'Anonymous',
-                    cap: self.formatNumber((new BigNumber(candidate.capacity)).div(10 ** 18).toString())
+                    cap: (new BigNumber(candidate.capacity)).div(10 ** 18).toString()
                 })
             })
             self.candidates.sort((a, b) => {

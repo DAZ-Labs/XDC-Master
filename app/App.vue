@@ -3,15 +3,17 @@
         <div class="page-layout">
             <b-navbar>
                 <div class="container">
-                    <b-navbar-brand href="#">XDCMASTER</b-navbar-brand>
+                    <b-navbar-brand to="/">XDCMASTER</b-navbar-brand>
 
-                    <b-nav-form class="d-none">
+                    <b-nav-form class="search-form">
                         <b-form-input placeholder="Search..." />
-                        <b-button type="submit">Search</b-button>
+                        <b-button
+                            variant="outline-success"
+                            type="submit">Search</b-button>
                     </b-nav-form>
 
                     <b-button
-                        class="d-none"
+                        id="btn-become-candidate"
                         to="/apply">Become a candidate</b-button>
                 </div>
             </b-navbar>
