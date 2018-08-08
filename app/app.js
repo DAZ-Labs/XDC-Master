@@ -13,14 +13,13 @@ import UnvotingView from './components/voters/Unvoting'
 import ConfirmView from './components/voters/Confirm'
 import Setting from './components/Setting.vue'
 
-import BootstrapVue from 'bootstrap-vue'
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import VueMaterial from 'vue-material'
+import 'vue-material/dist/vue-material.css'
+import 'vue-material/dist/theme/default.css'
 import Web3 from 'web3'
 import { default as contract } from 'truffle-contract'
 import XDCValidatorArtifacts from '../build/contracts/XDCValidator.json'
-
-Vue.use(BootstrapVue)
+Vue.use(VueMaterial)
 
 Vue.prototype.XDCValidator = contract(XDCValidatorArtifacts)
 Vue.prototype.isElectron = !!(window && window.process && window.process.type)
@@ -60,20 +59,6 @@ Vue.prototype.setupProvider = function (provider, wjs) {
 
 let provider = (Vue.prototype.isElectron) ? 'testnet' : 'metamask'
 Vue.prototype.setupProvider(provider, web3js)
-
-Vue.prototype.formatNumber = function (number) {
-    let seps = number.toString().split('.')
-    seps[0] = seps[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-
-    return seps.join('.')
-}
-
-Vue.prototype.formatCurrenctySymbol = function (number, unit = null) {
-    if (unit === null) {
-        unit = '$XDC'
-    }
-    return `${number} ${unit}`
-}
 
 Vue.use(VueRouter)
 

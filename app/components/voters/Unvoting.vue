@@ -61,7 +61,7 @@
                                             min="0.1"
                                             step="0.1"
                                             type="number"/>
-                                        <md-icon md-src="/app/assets/img/XDC.svg" />
+                                        <md-icon md-src="/app/assets/XDC.svg" />
                                         <md-tooltip>
                                             The amount of XDC to unvote</md-tooltip>
                                         <span

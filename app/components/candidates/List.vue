@@ -2,111 +2,110 @@
     <div>
         <div
             v-if="isReady"
-            class="container section status-section">
-            <div class="row">
-                <div class="col-12">
-                    <h3 class="section-title">
-                        <i class="tm-bolt color-pink" />
-                        <span>Network Status</span>
-                    </h3>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <b-card class="XDC-card">
-                        <h6 class="XDC-card__title">Current Block</h6>
-                        <p class="XDC-card__text">
-                            <router-link :to="'/blocksigners'">#{{ blockNumber }}</router-link>
-                        </p>
-                    </b-card>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <b-card class="XDC-card">
-                        <h6 class="XDC-card__title">AVG Block Time</h6>
-                        <p class="XDC-card__text">2.00 s</p>
-                    </b-card>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <b-card class="XDC-card">
-                        <h6 class="XDC-card__title">epoch</h6>
-                        <p class="XDC-card__text">990 blocks</p>
-                    </b-card>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <b-card class="XDC-card">
-                        <h6 class="XDC-card__title">Next Checkpoint</h6>
-                        <p class="XDC-card__text">#{{ nextCheckpoint }}</p>
-                    </b-card>
-                </div>
+            class="container status-container md-layout md-gutter md-alignment-top-center">
+            <div
+                class="md-layout-item md-xlarge-size-25 md-large-size-25
+                md-medium-size-50 md-small-size-50 md-xsmall-size-50">
+                <md-card md-with-hover>
+                    <md-card-header>
+                        <p class="md-subheading">Current Block</p>
+                        <router-link :to="'/blocksigners'">
+                            <p class="md-display-1">#{{ blockNumber }}</p>
+                        </router-link>
+                    </md-card-header>
+                </md-card>
+            </div>
+            <div
+                class="md-layout-item md-xlarge-size-25 md-large-size-25
+                md-medium-size-50 md-small-size-50 md-xsmall-size-50">
+                <md-card md-with-hover>
+                    <md-card-header>
+                        <p class="md-subheading">AVG Block Time</p>
+                        <p class="md-display-1">2.00 s</p>
+                    </md-card-header>
+                </md-card>
+            </div>
+            <div
+                class="md-layout-item md-xlarge-size-25 md-large-size-25
+                md-medium-size-50 md-small-size-50 md-xsmall-size-50">
+                <md-card md-with-hover>
+                    <md-card-header>
+                        <p class="md-subheading">epoch</p>
+                        <p class="md-display-1">990 blocks</p>
+                    </md-card-header>
+                </md-card>
+            </div>
+            <div
+                class="md-layout-item md-xlarge-size-25 md-large-size-25
+                md-medium-size-50 md-small-size-50 md-xsmall-size-50">
+                <md-card md-with-hover>
+                    <md-card-header>
+                        <p class="md-subheading">Next Checkpoint</p>
+                        <p class="md-display-1">#{{ nextCheckpoint }}</p>
+                    </md-card-header>
+                </md-card>
             </div>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h3 class="section-title">
-                        <i class="tm-flag color-yellow" />
-                        <span>Candidates</span>
-                    </h3>
-                </div>
+        <div class="container md-layout md-gutter md-alignment-top-center">
+            <div class="md-layout-item">
+                <md-table
+                    v-model="candidates"
+                    md-card
+                    md-fixed-header
+                    md-sort="cap"
+                    md-sort-order="asc">
+                    <md-table-toolbar>
+                        <p class="md-title">Candidates</p>
+                    </md-table-toolbar>
+
+                    <md-table-row
+                        slot="md-table-row"
+                        slot-scope="{ item }">
+                        <md-table-cell
+                            md-numeric
+                            md-label="ID">{{ item.id }}
+                        </md-table-cell>
+                        <md-table-cell
+                            md-label="Address"
+                            md-sort-by="address">
+                            <router-link :to="'/candidate/' + item.address">
+                                {{ item.address.substring(0, 8) + '...' }}
+                            </router-link>
+                        </md-table-cell>
+                        <md-table-cell
+                            md-label="Name">
+                            {{ item.name }}
+                        </md-table-cell>
+                        <md-table-cell
+                            md-label="Capacity"
+                            md-sort-by="cap">{{ item.cap }} $XDC
+                        </md-table-cell>
+                        <md-table-cell
+                            md-label="Status">
+                            <md-chip
+                                v-if="!item.isMasternode"
+                                :class="item.status == 'PROPOSED' ? 'md-primary' : 'md-accent'">
+                                {{ item.status }}</md-chip>
+                            <md-chip v-if="item.isMasternode">
+                                MASTERNODE</md-chip>
+                        </md-table-cell>
+                        <md-table-cell>
+                            <md-button
+                                v-if="item.status === 'PROPOSED'"
+                                :to="'/voting/' + item.address"
+                                class="md-raised md-primary">Vote</md-button>
+                            <md-button
+                                v-if="item.status === 'PROPOSED' && item.owner === account"
+                                :to="'/resign/' + item.address"
+                                class="md-raised">Resign</md-button>
+                            <md-button
+                                v-if="item.status === 'RESIGNED' && item.owner === account"
+                                :to="'/withdraw/' + item.address"
+                                class="md-raised">Withdraw</md-button>
+                        </md-table-cell>
+                    </md-table-row>
+                </md-table>
             </div>
-            <b-table
-                :items="sortedCandidates"
-                :fields="fields"
-                :sort-by.sync="sortBy"
-                :sort-desc.sync="sortDesc"
-                class="XDC-table XDC-table--candidates"
-                stacked="md" >
-
-                <template
-                    slot="index"
-                    slot-scope="data">{{ data.index + 1 }}
-                </template>
-
-                <template
-                    slot="address"
-                    slot-scope="data">
-                    <router-link
-                        :to="'/candidate/' + data.item.address"
-                        class="text-truncate">
-                        {{ data.item.address }}
-                    </router-link>
-                </template>
-
-                <template
-                    slot="cap"
-                    slot-scope="data">{{ formatCurrenctySymbol(formatNumber(data.item.cap)) }}</template>
-
-                <template
-                    slot="status"
-                    slot-scope="data">
-                    <div class="mt-2 mt-lg-0">
-                        <span
-                            v-if="!data.item.isMasternode"
-                            :class="'XDC-chip '
-                            + (data.item.status === 'PROPOSED' ? 'XDC-chip--primary' : 'XDC-chip--accent') ">
-                            {{ data.item.status.toLowerCase() }}
-                        </span>
-                        <span
-                            v-if="data.item.isMasternode"
-                            class="XDC-chip XDC-chip--yellow">MASTERNODE</span>
-                    </div>
-                </template>
-
-                <template
-                    slot="action"
-                    slot-scope="data">
-                    <b-button
-                        v-if="data.item.status === 'PROPOSED'"
-                        :to="`/voting/${data.item.address}`"
-                        class="mt-3 mt-lg-0">Vote</b-button>
-                    <b-button
-                        v-if="data.item.status === 'PROPOSED' && data.item.owner === account"
-                        :to="`/resign/${data.item.address}`"
-                        class="mt-3 mt-lg-0">Resign</b-button>
-                    <b-button
-                        v-if="data.item.status === 'RESIGNED' && data.item.owner === account"
-                        :to="`/withdraw/${data.item.address}`"
-                        class="mt-3 mt-lg-0">Withdraw</b-button>
-                </template>
-            </b-table>
         </div>
     </div>
 </template>
@@ -119,40 +118,6 @@ export default {
     name: 'App',
     data () {
         return {
-            fields: [
-                {
-                    key: 'index',
-                    label: 'ID',
-                    sortable: false
-                },
-                {
-                    key: 'address',
-                    label: 'Address',
-                    sortable: true
-                },
-                {
-                    key: 'name',
-                    label: 'Name',
-                    sortable: true
-                },
-                {
-                    key: 'cap',
-                    label: 'Capacity',
-                    sortable: true
-                },
-                {
-                    key: 'status',
-                    label: 'Status',
-                    sortable: false
-                },
-                {
-                    key: 'action',
-                    label: '',
-                    sortable: false
-                }
-            ],
-            sortBy: 'cap',
-            sortDesc: true,
             isReady: !!this.web3,
             account: '',
             blockNumber: 0,
@@ -232,3 +197,13 @@ export default {
     }
 }
 </script>
+<style scoped>
+.status-container .md-display-1 {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+}
+
+.status-container .md-card {
+    margin-bottom: 0;
+}
+</style>

@@ -1,30 +1,13 @@
 var path = require('path')
 var webpack = require('webpack')
-var appName = 'app.js'
-
-if (process.env.NODE_ENV === 'production') {
-    appName = '[name].min.js'
-} else {
-    appName = '[name].js'
-}
 
 module.exports = {
     mode: 'development',
-    entry: {
-        app: './app/app.js',
-        style: './app/assets/scss/style.scss'
-    },
+    entry: './app/app.js',
     output: {
         path: path.resolve(__dirname, './build'),
         publicPath: '/build/',
-        filename: appName
-        // chunkFilename: 'chunks/[chunkhash].js',
-        // jsonpFunction: 'pluginWebpack'
-    },
-    optimization: {
-        splitChunks: {
-            name: 'app'
-        }
+        filename: 'app.js'
     },
     module: {
         rules: [
@@ -40,25 +23,11 @@ module.exports = {
                     'vue-style-loader',
                     'css-loader'
                 ]
-            },
-            {
-                test: /\.scss$/,
-                use: [
-                    'vue-style-loader',
-                    'css-loader',
-                    'sass-loader'
-                ]
-            },
-            {
+            }, {
                 test: /\.vue$/,
                 loader: 'vue-loader',
                 options: {
                     loaders: {
-                        'scss': [
-                            'vue-style-loader',
-                            'css-loader',
-                            'sass-loader'
-                        ]
                     }
                     // other vue-loader options go here
                 }
@@ -66,10 +35,6 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                include: [
-                    path.resolve(__dirname, 'src'),
-                    require.resolve('bootstrap-vue')
-                ],
                 exclude: /node_modules/
             },
             {
@@ -78,18 +43,12 @@ module.exports = {
                 options: {
                     name: '[name].[ext]?[hash]'
                 }
-            },
-            {
-                test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-                loader: 'url-loader'
             }
         ]
     },
     resolve: {
         alias: {
-            'vue$': 'vue/dist/vue.esm.js',
-            'app': path.resolve('./app/app.js'),
-            'style': path.resolve('./app/assets/scss/style.scss')
+            'vue$': 'vue/dist/vue.esm.js'
         },
         extensions: ['*', '.js', '.vue', '.json']
     },
@@ -115,12 +74,6 @@ if (process.env.NODE_ENV === 'production') {
         new webpack.DefinePlugin({
             'process.env': {
                 NODE_ENV: '"production"'
-            }
-        }),
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true,
-            compress: {
-                warnings: false
             }
         }),
         new webpack.LoaderOptionsPlugin({
