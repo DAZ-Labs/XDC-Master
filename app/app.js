@@ -24,7 +24,7 @@ import Toasted from 'vue-toasted'
 Vue.use(BootstrapVue)
 
 Vue.use(Toasted, {
-    position: 'bottom-left',
+    position: 'bottom-right',
     theme: 'bubble',
     duration: 4000,
     action : {
@@ -81,11 +81,17 @@ Vue.prototype.formatNumber = function (number) {
     return seps.join('.')
 }
 
-Vue.prototype.formatCurrenctySymbol = function (number, unit = null) {
+Vue.prototype.formatCurrencySymbol = function (number) {
+    let unit = this.getCurrencySymbol()
+
     if (unit === null) {
         unit = '$XDC'
     }
     return `${number} ${unit}`
+}
+
+Vue.prototype.getCurrencySymbol = function () {
+    return '$XDC'
 }
 
 Vue.use(VueRouter)

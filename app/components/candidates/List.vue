@@ -61,7 +61,7 @@
 
                 <template
                     slot="index"
-                    slot-scope="data">{{ data.item.id }}
+                    slot-scope="data">{{ data.index + 1 }}
                 </template>
 
                 <template
@@ -76,7 +76,7 @@
 
                 <template
                     slot="cap"
-                    slot-scope="data">{{ formatCurrenctySymbol(formatNumber(data.item.cap)) }}
+                    slot-scope="data">{{ formatCurrencySymbol(formatNumber(data.item.cap)) }}
                 </template>
 
                 <template
@@ -238,10 +238,9 @@ export default {
 
             let signers = await axios.get('/api/signers/get/latest')
             let candidates = await axios.get('/api/candidates')
-            candidates.data.map(async (candidate, idx) => {
+            candidates.data.map(async (candidate) => {
                 let isMasternode = (((signers || {}).data || {}).signers || []).indexOf(candidate.candidate) >= 0
                 self.candidates.push({
-                    id: idx + 1,
                     address: candidate.candidate,
                     owner: candidate.owner,
                     status: candidate.status,
