@@ -1,140 +1,141 @@
 <template>
     <div>
-        <link
-            rel="stylesheet"
-            href="https://use.fontawesome.com/releases/v5.0.12/css/all.css"
-            integrity="sha384-G0fIWCsCzJIMAVNQPfjH08cyYaUtMwjJwqiRKxxE/rx96Uroj1BtIQ6MLJuheaO9"
-            crossorigin="anonymous">
-        <div class="container md-layout md-gutter md-alignment-top-center">
-            <div
-                class="md-layout-item md-xlarge-size-50 md-large-size-50
-                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
-                <md-card>
-                    <md-card-header>
-                        <md-content>
-                            <div class="md-headline">
-                                <span :class="'candidate-status candidate-status--' + candidate.status">
-                                    <md-tooltip
-                                        class="candidate-status-tooltip"
-                                        md-direction="left">{{ candidate.status }}</md-tooltip>
-                                </span>
-                                {{ candidate.name }}
-                            </div>
-                            <div class="md-subhead">
-                                <a
-                                    class="candidate-address"
-                                    href="#"
-                                    target="__blank">{{ candidate.address }}</a>
-                            </div>
-                        </md-content>
-                    </md-card-header>
-
-                    <md-card-content>
-                        <md-content class="social-wrap">
-                            <a
+        <div class="container section section--candidate">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-title">
+                        <i class="tm-flag color-yellow" />
+                        <span>{{ candidate.name }}</span>
+                        <span class="text-truncate section-title__description">{{ candidate.address }}</span>
+                        <ul class="list-inline social-links">
+                            <li
                                 v-for="(value, key) in candidate.socialInfo"
                                 :key="key"
-                                :href="value">
-                                <md-icon :class="key == 'mail' ? 'fas fa-envelope' : 'fab ' + 'fa-' + key" />
-                                {{ key }}
-                            </a>
-                        </md-content>
-                        <md-list class="md-double-line md-list-2-col">
-                            <md-list-item :class="'md-list-item-status md-list-item-status--' + candidate.status">
-                                <md-icon>offline_bolt</md-icon>
-                                <div class="md-list-item-text">
-                                    <span>{{ candidate.status }}</span>
-                                    <span>Node Status</span>
-                                </div>
-                            </md-list-item>
-                            <md-list-item>
-                                <md-icon md-src="/app/assets/XDC.svg"/>
-                                <div class="md-list-item-text">
-                                    <span><strong>{{ candidate.balance }}</strong> $XDC</span>
-                                    <span>Balance</span>
-                                </div>
-                            </md-list-item>
-                            <md-list-item>
-                                <md-icon md-src="/app/assets/XDC.svg" />
-                                <div class="md-list-item-text">
-                                    <span><strong>{{ candidate.cap }}</strong> $XDC</span>
-                                    <span>Capacity</span>
-                                </div>
-                            </md-list-item>
-                            <md-list-item>
-                                <md-icon>arrow_upward</md-icon>
-                                <div class="md-list-item-text">
-                                    <span><strong>{{ candidate.totalVoted }}</strong> $XDC</span>
-                                    <span>Total voted</span>
-                                </div>
-                            </md-list-item>
-                            <md-list-item v-if="isReady">
-                                <md-icon>receipt</md-icon>
-                                <div class="md-list-item-text">
-                                    <span><strong>{{ candidate.voted }}</strong> $XDC</span>
-                                    <span>You voted</span>
-                                </div>
-                            </md-list-item>
-                            <md-list-item>
-                                <md-icon>card_giftcard</md-icon>
-                                <div class="md-list-item-text">
-                                    <span><strong>{{ candidate.rewarded }}</strong> $XDC</span>
-                                    <span>Rewarded</span>
-                                </div>
-                            </md-list-item>
-                            <md-list-item>
-                                <md-icon class="fa fa-cube" />
-                                <div class="md-list-item-text">
-                                    <span>#{{ candidate.latestBlock }}</span>
-                                    <span>Latest Block</span>
-                                </div>
-                            </md-list-item>
-                            <md-list-item>
-                                <md-icon class="fa fa-cubes" />
-                                <div class="md-list-item-text">
-                                    <span>{{ candidate.totalSignedBlocks }}</span>
-                                    <span>Total Signed Blocks</span>
-                                </div>
-                            </md-list-item>
-                        </md-list>
-                        <md-card-expand-content class="candidate-expand-content">
-                            <md-list class="md-double-line">
-                                <md-list-item>
-                                    <md-icon class="fa fa-microchip" />
-                                    <div class="md-list-item-text">
-                                        <span>{{ candidate.hardwareInfo }}</span>
-                                        <span>Hardware</span>
-                                    </div>
-                                </md-list-item>
-                                <md-list-item
-                                    v-for="(value, key) in candidate.dataCenterInfo"
-                                    :key="key">
-                                    <md-icon :class="'fa ' + (key == 'name' ? 'fa-server' : 'fa-map-marker-alt')" />
-                                    <div class="md-list-item-text">
-                                        <span>{{ value }}</span>
-                                        <span>{{ key }}</span>
-                                    </div>
-                                </md-list-item>
-                            </md-list>
-                        </md-card-expand-content>
-                    </md-card-content>
-
-                    <md-card-actions>
-                        <md-card-expand-trigger>
-                            <md-button class="md-icon-button">
-                                <md-icon>keyboard_arrow_down</md-icon>
-                            </md-button>
-                        </md-card-expand-trigger>
-                        <md-button
-                            v-if="candidate.voted > 0"
-                            :to="'/unvoting/' + candidate.address"
-                            class="md-raised md-accent"><md-icon>arrow_downward</md-icon> Unvote</md-button>
-                        <md-button
-                            :to="'/voting/' + candidate.address"
-                            class="md-raised md-primary"><md-icon>arrow_upward</md-icon> Vote</md-button>
-                    </md-card-actions>
-                </md-card>
+                                class="list-inline-item social-links__item">
+                                <a
+                                    :href="value"
+                                    class="social-links__link">
+                                    <i :class="'social-links__icon tm-' + key" />
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
+            <b-card class="XDC-card XDC-card--animated XDC-card--candidate">
+                <div class="row m-md-0">
+                    <div
+                        :class="'col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 candidate-info candidate-info-status--'
+                        + candidate.status">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">Note Status</span>
+                        </p>
+                        <p class="candidate-info__description">Active</p>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">Balance</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ formatCurrenctySymbol(formatNumber(candidate.balance)) }}
+                        </p>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">Capacity</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ formatCurrenctySymbol(formatNumber(candidate.cap)) }}
+                        </p>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 candidate-info candidate-info--big">
+                        <p class="candidate-info__title">
+                            <i class="tm-arrow-up candidate-info__icon" />
+                            <span class="candidate-info__text">Total voted</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ formatCurrenctySymbol(formatNumber(candidate.totalVoted)) }}
+                        </p>
+                    </div>
+                    <div
+                        v-if="isReady"
+                        class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">You voted</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ formatCurrenctySymbol(formatNumber(candidate.voted)) }}
+                        </p>
+                    </div>
+                    <div
+                        v-if="isReady"
+                        class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">Rewarded</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ formatCurrenctySymbol(formatNumber(candidate.rewarded)) }}
+                        </p>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 m-xl-0 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">Latest Block</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            #{{ formatNumber(candidate.latestBlock) }}
+                        </p>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 m-xl-0 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">Total Signed Blocks</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ formatNumber(candidate.totalSignedBlocks) }}
+                        </p>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-6 col-xl-4 order-md-1 order-lg-0 m-xl-0 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">Hardware</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ candidate.hardwareInfo }}
+                        </p>
+                    </div>
+                    <div
+                        v-for="(value, key) in candidate.dataCenterInfo"
+                        :key="key"
+                        class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 m-xl-0 candidate-info">
+                        <p class="candidate-info__title">
+                            <i class="tm-dot candidate-info__icon" />
+                            <span class="candidate-info__text">{{ key }}</span>
+                        </p>
+                        <p class="candidate-info__description">
+                            {{ value }}
+                        </p>
+                    </div>
+                </div>
+                <b-card-footer
+                    v-if="candidate.status !== 'RESIGNED'"
+                    class="text-right">
+                    <b-button
+                        v-if="candidate.voted > 0"
+                        :to="`/unvoting/${candidate.address}`"
+                        variant="secondary">Unvote</b-button>
+                    <b-button
+                        :to="`/voting/${candidate.address}`"
+                        variant="primary">Vote</b-button>
+                </b-card-footer>
+            </b-card>
+        </div>
+        <div class="container md-layout md-gutter md-alignment-top-center">
             <div
                 v-if="voters.length > 0"
                 class="md-layout-item md-xlarge-size-50 md-large-size-50
@@ -183,7 +184,7 @@
                     </md-card-header>
 
                     <md-card-content>
-                        <iframe
+                        <!-- <iframe
                             src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
                             orgId=1&panelId=2&theme=light"
                             width="1200"
@@ -192,7 +193,7 @@
                             src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
                             orgId=1&panelId=6&theme=light"
                             width="1200"
-                            frameborder="0" />
+                            frameborder="0" /> -->
                     </md-card-content>
                 </md-card>
             </div>
@@ -209,50 +210,13 @@
                     </md-card-header>
 
                     <md-card-content>
-                        <iframe
+                        <!-- <iframe
                             src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin
                             ?orgId=1&panelId=4&theme=light"
                             width="1200"
-                            frameborder="0" />
+                            frameborder="0" /> -->
                     </md-card-content>
                 </md-card>
-            </div>
-            <div
-                v-if="signs.length > 0"
-                class="md-layout-item md-xlarge-size-100 md-large-size-100
-                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
-                <md-table
-                    v-model="signs"
-                    md-card
-                    md-fixed-header
-                    md-sort="id"
-                    md-sort-order="asc">
-                    <md-table-toolbar>
-                        <div class="md-title">Signs
-                            <p class="md-subhead">All transactions that the candidate signed</p>
-                        </div>
-                    </md-table-toolbar>
-                    <md-table-row
-                        slot="md-table-row"
-                        slot-scope="{ item }">
-                        <md-table-cell
-                            md-numeric
-                            md-label="ID">{{ item.id }}
-                        </md-table-cell>
-                        <md-table-cell
-                            md-label="Block Number">
-                            {{ item.blockNumber }}
-                        </md-table-cell>
-                        <md-table-cell
-                            md-label="">
-                            <a
-                                :href="'https://explorer-testnet.XinFin.com/txs/' + item.tx"
-                                target="_blank">
-                                {{ item.tx }}
-                            </a>
-                        </md-table-cell>
-                    </md-table-row>
-                </md-table>
             </div>
             <div
                 v-if="transactions.length > 0"
@@ -323,7 +287,6 @@ export default {
             unvoteValue: 1,
             voters: [],
             transactions: [],
-            signs: [],
             candidate: {
                 address: this.$route.params.address,
                 name: '',
@@ -338,7 +301,7 @@ export default {
                 socialInfo: {
                     github: '#',
                     linkedin: '#',
-                    mail: '#'
+                    email: '#'
                 },
                 voted: 0,
                 totalVoted: 0
@@ -358,10 +321,11 @@ export default {
             if (c.data) {
                 let data = c.data
                 self.candidate.name = data.name ? data.name : 'Anonymous Candidate'
+                self.candidate.status = data.status
                 self.candidate.cap = (new BigNumber(data.capacity)).div(10 ** 18).toString()
                 self.candidate.rewarded = 1
                 self.candidate.latestBlock = '123,456'
-                self.candidate.totalSignedBlocks = data.totalSignedBlocks
+                self.candidate.totalSignedBlocks = 100
                 self.candidate.hardwareInfo = '2.9 GHz Intel Core i5/32 TB 1867 MHz DDR3'
                 self.candidate.dataCenterInfo = {
                     name: 'AWS',
@@ -379,8 +343,9 @@ export default {
             }
 
             let voters = await axios.get(`/api/candidates/${address}/voters`)
-            voters.data.map((v) => {
+            voters.data.map((v, idx) => {
                 self.voters.push({
+                    id: idx + 1,
                     address: v.voter,
                     cap: (v.capacity / 10 ** 18)
                 })
@@ -388,11 +353,6 @@ export default {
                 if (v.voter === account) {
                     self.candidate.voted += (parseFloat(v.capacity) / 10 ** 18)
                 }
-            })
-            self.voters.sort((a, b) => {
-                return b.cap - a.cap
-            }).map((v, i) => {
-                v.id = i + 1
             })
 
             let txs = await axios.get(`/api/transactions/candidate/${address}`)
@@ -404,18 +364,6 @@ export default {
                     candidate: tx.candidate,
                     event: tx.event,
                     cap: (new BigNumber(tx.capacity)).div(10 ** 18).toString()
-                })
-            })
-
-            let blockSigners = await axios.get(`/api/blocksigners/getByCandidate/${address}`)
-            blockSigners.data.map((bs, idx) => {
-                let stx = bs.signers.filter(s => {
-                    return (s.signer === address)
-                })
-                self.signs.push({
-                    id: idx + 1,
-                    tx: stx[0].tx,
-                    blockNumber: bs.blockNumber
                 })
             })
         } catch (e) {
@@ -438,59 +386,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-
-.candidate-status {
-    cursor: pointer;
-    font-size: 0;
-    display: inline-block;
-    vertical-align: 4px;
-    width: 8px;
-    height: 8px;
-    border-radius: 100%;
-    margin-right: 2px;
-}
-
-.candidate-status-tooltip {
-    text-transform: capitalize;
-}
-
-.candidate-status--active {
-    background-color: #60d156;
-}
-
-.candidate-status--inactive {
-    opacity: .5;
-    background-color: #aaaaaa;
-}
-
-a.candidate-address.candidate-address {
-    color: rgba(0, 0, 0, .87);
-}
-
-.social-wrap a {
-    font-size: 0;
-    margin-right: 5px;
-}
-
-.social-wrap a .md-icon {
-    font-size: 24px;
-}
-
-.md-list-item-status .md-list-item-text {
-    text-transform: capitalize;
-}
-
-.md-list-item-status.md-list-item-status--active .md-icon {
-    color: #60d156;
-}
-
-.md-card:not(.md-expand-active) .candidate-expand-content {
-    margin-top: -232px !important;
-}
-
-.md-list.md-theme-default.md-double-line .md-list-item-text :nth-child(2) {
-    text-transform: capitalize;
-}
-</style>

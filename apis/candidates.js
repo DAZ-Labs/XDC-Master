@@ -20,9 +20,6 @@ router.get('/:candidate', async function (req, res, next) {
         smartContractAddress: validator.address,
         candidate: req.params.candidate
     })
-    candidate.totalSignedBlocks = await db.BlockSigner.count({
-        'signers.signer': req.params.candidate
-    })
     return res.json(candidate)
 })
 

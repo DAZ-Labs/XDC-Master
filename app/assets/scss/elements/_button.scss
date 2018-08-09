@@ -1,5 +1,6 @@
 button,
-.btn {
+.btn,
+.btn.btn-primary.btn-primary.active {
     font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
@@ -22,6 +23,26 @@ button,
         box-shadow: none !important;
         border-color: $color-btn-hover-bg !important;
         background-color: $color-btn-hover-bg !important;
+    }
+
+    &:disabled {
+        color: $color-text !important;
+        border-color: #373658 !important;
+        background-color: #373658 !important;
+    }
+}
+
+button.btn-secondary,
+.btn.btn-secondary,
+.btn.btn-secondary.btn-secondary.active {
+    color: #fff;
+    border-color: $color-pink ;
+    background-color: $color-pink;
+
+    &:hover,
+    &:focus {
+        border-color: #f49cbb;
+        background-color: #f49cbb;
     }
 }
 

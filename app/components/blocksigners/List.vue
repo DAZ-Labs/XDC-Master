@@ -1,35 +1,36 @@
 <template>
-    <div>
-        <div class="container md-layout md-gutter md-alignment-top-center">
-            <div class="md-layout-item">
-                <md-table
-                    v-model="blockSigners"
-                    md-card
-                    md-fixed-header>
-                    <md-table-toolbar>
-                        <p class="md-title">Blocks</p>
-                    </md-table-toolbar>
+    <div class="container">
+        <b-row
+            align-v="center"
+            align-h="center"
+            class="m-0">
+            <b-table
+                :items="blockSigners"
+                :fields="fields"
+                :sort-by.sync="sortBy"
+                :sort-desc.sync="sortDesc"
+                show-empty="true"
+                empty-text="There are no signers to show"
+                class="XDC-table XDC-table--signers"
+                stacked="md" >
 
-                    <md-table-row
-                        slot="md-table-row"
-                        slot-scope="{ item }">
-                        <md-table-cell
-                            md-numeric
-                            md-label="ID">{{ item.blockNumber }}
-                        </md-table-cell>
-                        <md-table-cell
-                            md-label="Signer">
-                            <router-link
-                                v-for="it in item.signers"
-                                :key="it.signer"
-                                :to="'/candidate/' + it.signer">
-                                {{ it.signer }}
-                            </router-link>
-                        </md-table-cell>
-                    </md-table-row>
-                </md-table>
-            </div>
-        </div>
+                <template
+                    slot="index"
+                    slot-scope="data">{{ data.blockNumber }}
+                </template>
+
+                <template
+                    slot="signers"
+                    slot-scope="data">
+                    <router-link
+                        v-for="it in data.signers"
+                        :key="it"
+                        :to="'/candidate/' + it">
+                        {{ it }}
+                    </router-link>
+                </template>
+            </b-table>
+        </b-row>
     </div>
 </template>
 
@@ -40,6 +41,20 @@ export default {
     name: 'App',
     data () {
         return {
+            fields: [
+                {
+                    key: 'index',
+                    label: 'ID',
+                    sortable: false
+                },
+                {
+                    key: 'signers',
+                    label: 'Signer',
+                    sortable: false
+                }
+            ],
+            sortBy: 'signers',
+            sortDesc: true,
             isReady: !!this.web3,
             account: '',
             blockSigners: []
@@ -68,13 +83,3 @@ export default {
     }
 }
 </script>
-<style scoped>
-.status-container .md-display-1 {
-    margin-top: 0.5em;
-    margin-bottom: 0;
-}
-
-.status-container .md-card {
-    margin-bottom: 0;
-}
-</style>

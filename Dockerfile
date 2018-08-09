@@ -1,20 +1,15 @@
-FROM node:8-alpine
+FROM node:8
 
-LABEL maintainer="etienne@XinFin.com"
+WORKDIR /build
 
-ENV HOST 0.0.0.0
+RUN npm install -g pm2
+COPY ./package.json /build
+COPY ./package-lock.json /build
+RUN npm install
+COPY ./ /build
+RUN npm run build && rm -rf /build/node_modules
 
-WORKDIR /app
+RUN npm install --production
 
-COPY . .
-
-RUN apk --no-cache --virtual deps add \
-      python \
-      make \
-      g++ \
-      bash \
-      git \
-    && npm install -g pm2 truffle \
-    && npm install
-
-ENTRYPOINT ["npm"]
+RUN chmod +x ./entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]

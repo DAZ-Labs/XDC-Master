@@ -92,12 +92,21 @@ COMPONENTS
 Specific UI components.
 This is where majority of our work takes place and our UI components are often composed of Objects and Components
 */
+@import 'components/candidate-info';
 @import 'components/card';
 @import 'components/chip';
-@import 'components/navbar';
-@import 'components/search';
+@import 'components/empty';
+@import 'components/form';
+@import 'components/list';
+@import 'components/loading';
 @import 'components/main-content';
+@import 'components/modal';
+@import 'components/navbar';
+@import 'components/number-input';
+@import 'components/pagination';
+@import 'components/search';
 @import 'components/sections';
+@import 'components/social-links';
 @import 'components/table';
 
 /*

@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "Generating Configuration File ..."
-cp ./config/default.json ./config/local.json
+cp /build/config/default.json /build/config/local.json
 
 pm2 start -x ./services/crawl.js
 pm2 start -x --no-daemon index.js

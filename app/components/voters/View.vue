@@ -13,7 +13,7 @@
                     <md-card-content>
                         <md-list class="md-double-line">
                             <md-list-item v-if="isReady">
-                                <md-icon md-src="/app/assets/XDC.svg" />
+                                <md-icon md-src="/app/assets/img/XDC.svg" />
                                 <div class="md-list-item-text">
                                     <span><strong>{{ balance }}</strong> $XDC</span>
                                     <span>Balance</span>
