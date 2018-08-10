@@ -15,7 +15,9 @@ services:
       - "443:443"
 
   XDCmaster:
-    build: ./
+    build:
+      context: ./
+      dockerfile: Dockerfile.old
     image: XinFin/XDCmaster
     restart: "on-failure:10"
     depends_on:

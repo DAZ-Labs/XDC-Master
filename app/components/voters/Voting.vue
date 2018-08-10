@@ -7,7 +7,7 @@
             <b-card
                 :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
                 + (loading ? ' XDC-loading' : '')">
-                <h2 class="h4 color-white XDC-card__title XDC-card__title--big">Vote</h2>
+                <h4 class=" color-white XDC-card__title XDC-card__title--big">Vote</h4>
                 <ul class="XDC-list list-unstyled">
                     <li class="XDC-list__item">
                         <i class="tm-XDC XDC-list__icon" />
@@ -53,7 +53,7 @@
                     </b-form-group>
                     <div class="buttons text-right">
                         <b-button
-                            type="reset"
+                            type="button"
                             variant="secondary"
                             @click="$router.go(-1)">Cancel</b-button>
                         <b-button
@@ -61,25 +61,6 @@
                             variant="primary">Submit</b-button>
                     </div>
                 </b-form>
-            </b-card>
-        </b-row>
-
-        <b-row
-            align-v="center"
-            align-h="center"
-            class="m-0">
-
-            <b-card class="col-12 col-md-8 col-lg-6 XDC-card p-0">
-                <h2 class="h4 color-white XDC-card__title XDC-card__title--big">Benefit</h2>
-                <p class="XDC-form__text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                    nisi ut aliquip ex ea commodo consequat.
-                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-                    dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-                    proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </p>
             </b-card>
         </b-row>
     </div>

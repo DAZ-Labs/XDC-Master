@@ -1,12 +1,7 @@
 var path = require('path')
 var webpack = require('webpack')
-var appName = 'app.js'
-
-if (process.env.NODE_ENV === 'production') {
-    appName = '[name].min.js'
-} else {
-    appName = '[name].js'
-}
+var appName = '[name].js'
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = {
     mode: 'development',
@@ -22,6 +17,7 @@ module.exports = {
         // jsonpFunction: 'pluginWebpack'
     },
     optimization: {
+        minimize: process.env.NODE_ENV === 'production',
         splitChunks: {
             name: 'app'
         }
@@ -31,7 +27,7 @@ module.exports = {
             {
                 enforce: 'pre',
                 test: [/\.js$/, /\.vue$/],
-                exclude: /node_modules/,
+                exclude: [/node_modules/],
                 loader: 'eslint-loader'
             },
             {
@@ -43,6 +39,7 @@ module.exports = {
             },
             {
                 test: /\.scss$/,
+                exclude: [/node_modules/],
                 use: [
                     'vue-style-loader',
                     'css-loader',
@@ -52,6 +49,7 @@ module.exports = {
             {
                 test: /\.vue$/,
                 loader: 'vue-loader',
+                exclude: /node_modules/,
                 options: {
                     loaders: {
                         'scss': [
@@ -66,10 +64,6 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                include: [
-                    path.resolve(__dirname, 'src'),
-                    require.resolve('bootstrap-vue')
-                ],
                 exclude: /node_modules/
             },
             {
@@ -77,11 +71,13 @@ module.exports = {
                 loader: 'file-loader',
                 options: {
                     name: '[name].[ext]?[hash]'
-                }
+                },
+                exclude: /node_modules/
             },
             {
                 test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-                loader: 'url-loader'
+                loader: 'url-loader',
+                exclude: /node_modules/
             }
         ]
     },
@@ -117,14 +113,16 @@ if (process.env.NODE_ENV === 'production') {
                 NODE_ENV: '"production"'
             }
         }),
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true,
-            compress: {
-                warnings: false
-            }
-        }),
         new webpack.LoaderOptionsPlugin({
-            minimize: true
+            minimize: true,
+            minimizer: new UglifyJsPlugin({
+                uglifyOptions: {
+                    sourceMap: true,
+                    compress: {
+                        warnings: false
+                    }
+                }
+            })
         })
     ])
 }

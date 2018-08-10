@@ -18,8 +18,11 @@
                         <i class="tm-dot XDC-info__icon" />
                         <span class="XDC-info__text">Balance</span>
                     </p>
-                    <p class="XDC-info__description">
-                        {{ formatCurrencySymbol(formatNumber(balance)) }}
+                    <p
+                        v-b-tooltip.hover
+                        :title="`${formatCurrencySymbol(formatBigNumber(balance, 6))}`"
+                        class="XDC-info__description">
+                        {{ formatCurrencySymbol(formatBigNumber(balance, 3)) }}
                     </p>
                 </div>
                 <div class="col-12 XDC-info">
@@ -46,13 +49,13 @@
             </div>
             <b-table
                 :items="sortedCandidates"
-                :fields="fields"
+                :fields="candidateFields"
                 :current-page="currentPage"
                 :per-page="perPage"
                 :sort-by.sync="sortBy"
                 :sort-desc.sync="sortDesc"
                 :show-empty="true"
-                class="XDC-table XDC-table--voted"
+                :class="`XDC-table XDC-table--voted${loading ? ' loading' : ''}`"
                 empty-text="There are no candidates to show"
                 stacked="md" >
 
@@ -73,9 +76,8 @@
 
                 <template
                     slot="cap"
-                    slot-scope="data">{{ formatCurrencySymbol(formatNumber(data.item.cap)) }}
+                    slot-scope="data">{{ formatCurrencySymbol(data.item.cap) }}
                 </template>
-
             </b-table>
 
             <b-pagination
@@ -96,7 +98,7 @@ export default {
     name: 'App',
     data () {
         return {
-            fields: [
+            candidateFields: [
                 {
                     key: 'index',
                     label: 'ID',
@@ -104,7 +106,7 @@ export default {
                 },
                 {
                     key: 'address',
-                    label: 'Candidate',
+                    label: 'Address',
                     sortable: true
                 },
                 {
@@ -122,7 +124,8 @@ export default {
             totalVoted: 0,
             currentPage: 1,
             perPage: 10,
-            totalRows: 0
+            totalRows: 0,
+            loading: false
         }
     },
     computed: {
@@ -138,26 +141,30 @@ export default {
         let self = this
         try {
             let voter = self.$route.params.address
+
+            self.loading = true
             let candidates = await axios.get(`/api/voters/${voter}/candidates`)
 
             candidates.data.map(async (c) => {
                 self.candidates.push({
                     address: c.candidate,
-                    cap: (new BigNumber(c.capacity)).div(10 ** 18).toString()
+                    cap: new BigNumber(c.capacity).div(10 ** 18).toFormat()
                 })
-                self.totalVoted += c.capacity / 10 ** 18
+                self.totalVoted += new BigNumber(c.capacity).div(10 ** 18).toNumber()
             })
 
             self.totalRows = self.candidates.length
 
             if (typeof self.web3 !== 'undefined') {
                 self.web3.eth.getBalance(voter, function (a, b) {
-                    self.balance = b / 10 ** 18
+                    self.balance = new BigNumber(b).div(10 ** 18).toNumber()
                     if (a) {
                         throw Error(a)
                     }
                 })
             }
+
+            self.loading = false
         } catch (e) {
             console.log(e)
         }

@@ -38,8 +38,12 @@
                             <i class="tm-dot XDC-info__icon" />
                             <span class="XDC-info__text">Balance</span>
                         </p>
-                        <p class="XDC-info__description">
-                            {{ formatCurrencySymbol(formatNumber(candidate.balance)) }}
+                        <p
+                            v-b-tooltip.hover
+                            v-b-tooltip.html.bottom
+                            :title="`${formatCurrencySymbol(formatBigNumber(candidate.balance, 6))}`"
+                            class="XDC-info__description">
+                            {{ formatCurrencySymbol(formatBigNumber(candidate.balance, 3)) }}
                         </p>
                     </div>
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 XDC-info">
@@ -47,8 +51,12 @@
                             <i class="tm-dot XDC-info__icon" />
                             <span class="XDC-info__text">Capacity</span>
                         </p>
-                        <p class="XDC-info__description">
-                            {{ formatCurrencySymbol(formatNumber(candidate.cap)) }}
+                        <p
+                            v-b-tooltip.hover
+                            v-b-tooltip.html.bottom
+                            :title="`${formatCurrencySymbol(formatBigNumber(candidate.cap, 6))}`"
+                            class="XDC-info__description">
+                            {{ formatCurrencySymbol(formatBigNumber(candidate.cap, 3)) }}
                         </p>
                     </div>
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 XDC-info XDC-info--big">
@@ -135,141 +143,216 @@
                 </b-card-footer>
             </b-card>
         </div>
-        <div class="container md-layout md-gutter md-alignment-top-center">
-            <div
-                v-if="voters.length > 0"
-                class="md-layout-item md-xlarge-size-50 md-large-size-50
-                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
-                <md-table
-                    v-model="voters"
-                    md-card
-                    md-fixed-header
-                    md-sort="cap"
-                    md-sort-order="asc">
-                    <md-table-toolbar>
-                        <div class="md-title">Voters
-                            <p class="md-subhead">People who voted for this candidate</p>
-                        </div>
-                    </md-table-toolbar>
-                    <md-table-row
-                        slot="md-table-row"
-                        slot-scope="{ item }">
-                        <md-table-cell
-                            md-label="ID"
-                            md-numeric>{{ item.id }}
-                        </md-table-cell>
-                        <md-table-cell
-                            md-label="Address"
-                            md-sort-by="address">
-                            <router-link :to="'/voter/' + item.address">{{ item.address }}</router-link>
-                        </md-table-cell>
-                        <md-table-cell
-                            md-numeric
-                            md-label="Capacity"
-                            md-sort-by="cap">{{ item.cap }} $XDC
-                        </md-table-cell>
-                    </md-table-row>
-                </md-table>
+        <div class="container section section--hardware">
+            <div class="row">
+                <div class="col-12 col-lg-6">
+                    <h3 class="section-title">
+                        <i class="tm-cpu color-pink" />
+                        <span>CPUs</span>
+                    </h3>
+                    <!-- <iframe
+                        src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
+                        orgId=1&panelId=2"
+                        width="100%"
+                        frameborder="0" />
+                    <iframe
+                        src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
+                        orgId=1&panelId=6"
+                        width="100%"
+                        frameborder="0" /> -->
+                </div>
+                <div class="col-12 col-lg-6">
+                    <h3 class="section-title">
+                        <i class="tm-memory color-orange" />
+                        <span>Memory</span>
+                    </h3>
+                    <!-- <iframe
+                        src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin
+                        ?orgId=1&panelId=4"
+                        width="100%"
+                        frameborder="0" /> -->
+                </div>
             </div>
-            <div
-                class="md-layout-item md-xlarge-size-100 md-large-size-100
-                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
-                <md-card>
-                    <md-card-header>
-                        <md-content>
-                            <div class="md-headline">
-                                CPUs
-                            </div>
-                        </md-content>
-                    </md-card-header>
+        </div>
+        <div class="container section section--signs">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="section-title">
+                        <i class="tm-signer color-yellow" />
+                        <span>Signs</span>
+                        <span class="text-truncate section-title__description">
+                            All transactions that the candidate signed</span>
+                    </h3>
+                </div>
+            </div>
+            <b-table
+                :items="signs"
+                :fields="signsFields"
+                :current-page="signsCurrentPage"
+                :per-page="signsPerPage"
+                :sort-by.sync="signsSortBy"
+                :sort-desc.sync="signsSortDesc"
+                :show-empty="true"
+                :class="`XDC-table XDC-table--signed${loading ? ' loading' : ''}`"
+                empty-text="There are no transactions to show"
+                stacked="md" >
 
-                    <md-card-content>
-                        <!-- <iframe
-                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
-                            orgId=1&panelId=2&theme=light"
-                            width="1200"
-                            frameborder="0" />
-                        <iframe
-                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
-                            orgId=1&panelId=6&theme=light"
-                            width="1200"
-                            frameborder="0" /> -->
-                    </md-card-content>
-                </md-card>
-            </div>
-            <div
-                class="md-layout-item md-xlarge-size-100 md-large-size-100
-                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
-                <md-card>
-                    <md-card-header>
-                        <md-content>
-                            <div class="md-headline">
-                                Memory
-                            </div>
-                        </md-content>
-                    </md-card-header>
+                <template
+                    slot="id"
+                    slot-scope="data">{{ data.item.id }}
+                </template>
 
-                    <md-card-content>
-                        <!-- <iframe
-                            src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin
-                            ?orgId=1&panelId=4&theme=light"
-                            width="1200"
-                            frameborder="0" /> -->
-                    </md-card-content>
-                </md-card>
+                <template
+                    slot="blockNumber"
+                    slot-scope="data">{{ data.item.blockNumber }}
+                </template>
+
+                <template
+                    slot="tx"
+                    slot-scope="data">
+                    <a
+                        v-b-tooltip.hover
+                        v-b-tooltip.html.right
+                        :href="`${config.explorerUrl}/txs/${data.item.tx}`"
+                        title="View on XDCScan"
+                        target="_blank"
+                        class="text-truncate">
+                        {{ data.item.tx }}
+                    </a>
+                </template>
+            </b-table>
+
+            <b-pagination
+                v-if="signsTotalRows > 0 && signsTotalRows > signsPerPage"
+                :total-rows="signsTotalRows"
+                :per-page="signsPerPage"
+                v-model="signsCurrentPage"
+                align="center"
+                class="XDC-pagination" />
+        </div>
+        <div class="container section section-voters">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="section-title">
+                        <i class="tm-arrow-up color-pink" />
+                        <span>Voters</span>
+                        <span class="text-truncate section-title__description">
+                            People who voted for this candidate</span>
+                    </h3>
+                </div>
             </div>
-            <div
-                v-if="transactions.length > 0"
-                class="md-layout-item md-xlarge-size-100 md-large-size-100
-                md-medium-size-70 md-small-size-90 md-xsmall-size-90">
-                <md-table
-                    v-model="transactions"
-                    md-card
-                    md-fixed-header
-                    md-sort="id"
-                    md-sort-order="asc">
-                    <md-table-toolbar>
-                        <div class="md-title">Transactions
-                            <p class="md-subhead">All transactions of this candidate</p>
-                        </div>
-                    </md-table-toolbar>
-                    <md-table-row
-                        slot="md-table-row"
-                        slot-scope="{ item }">
-                        <md-table-cell
-                            md-numeric
-                            md-label="ID">{{ item.id }}
-                        </md-table-cell>
-                        <md-table-cell
-                            md-label="Voter"
-                            md-sort-by="voter">
-                            <router-link :to="'/voter/' + item.voter">{{ item.voter }}</router-link>
-                        </md-table-cell>
-                        <md-table-cell
-                            md-label="Event"
-                            md-sort-by="event">
-                            <md-chip
-                                :class="getChipClass(item.event)">{{ item.event }}</md-chip>
-                        </md-table-cell>
-                        <md-table-cell
-                            md-numeric
-                            md-label="Capacity"
-                            md-sort-by="cap">
-                            {{ isNaN(item.cap) ? '--' : item.cap + ' $XDC' }}
-                        </md-table-cell>
-                        <md-table-cell
-                            md-label="">
-                            <md-button
-                                :href="'https://explorer-testnet.XinFin.com/txs/' + item.tx"
-                                target="_blank"
-                                class="md-icon-button">
-                                <md-icon>remove_red_eye</md-icon>
-                                <md-tooltip md-direction="right">View on XDC Explorer</md-tooltip>
-                            </md-button>
-                        </md-table-cell>
-                    </md-table-row>
-                </md-table>
+            <b-table
+                :items="sortedVoters"
+                :fields="voterFields"
+                :current-page="voterCurrentPage"
+                :per-page="voterPerPage"
+                :show-empty="true"
+                :class="`XDC-table XDC-table--voted${loading ? ' loading' : ''}`"
+                empty-text="There are no voters to show"
+                stacked="md" >
+
+                <template
+                    slot="id"
+                    slot-scope="data">{{ data.item.id }}
+                </template>
+
+                <template
+                    slot="address"
+                    slot-scope="data">
+                    <router-link
+                        :to="'/voter/' + data.item.address"
+                        class="text-truncate">
+                        {{ data.item.address }}
+                    </router-link>
+                </template>
+
+                <template
+                    slot="cap"
+                    slot-scope="data">{{ formatCurrencySymbol(formatNumber(data.item.cap)) }}
+                </template>
+            </b-table>
+
+            <b-pagination
+                v-if="voterTotalRows > 0 && voterTotalRows > voterPerPage"
+                :total-rows="voterTotalRows"
+                :per-page="voterPerPage"
+                v-model="voterCurrentPage"
+                align="center"
+                class="XDC-pagination" />
+        </div>
+        <div class="container section section--txs">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="section-title">
+                        <i class="tm-time color-purple" />
+                        <span>Transactions</span>
+                        <span class="text-truncate section-title__description">
+                            All transactions of this candidate</span>
+                    </h3>
+                </div>
             </div>
+            <b-table
+                :items="sortedTransactions"
+                :fields="txFields"
+                :current-page="txCurrentPage"
+                :per-page="txPerPage"
+                :sort-by.sync="txSortBy"
+                :sort-desc.sync="txSortDesc"
+                :show-empty="true"
+                :class="`XDC-table XDC-table--transactions${loading ? ' loading' : ''}`"
+                empty-text="There are no transactions to show"
+                stacked="md" >
+
+                <template
+                    slot="id"
+                    slot-scope="data">{{ data.item.id }}
+                </template>
+
+                <template
+                    slot="voter"
+                    slot-scope="data">
+                    <router-link
+                        :to="'/voter/' + data.item.voter"
+                        class="text-truncate">
+                        {{ data.item.voter }}
+                    </router-link>
+                </template>
+
+                <template
+                    slot="event"
+                    slot-scope="data">
+                    <span :class="'fw-600 ' + getEventClass(data.item.event)">{{ data.item.event }}</span>
+                </template>
+
+                <template
+                    slot="cap"
+                    slot-scope="data">
+                    {{ isNaN(data.item.cap) ? '---' : formatCurrencySymbol(data.item.cap) }}
+                </template>
+
+                <template
+                    slot="tx"
+                    slot-scope="data">
+                    <a
+                        v-b-tooltip.hover
+                        v-b-tooltip.html.right
+                        :href="`${config.explorerUrl}/txs/${data.item.tx}`"
+                        title="View on XDCScan"
+                        target="_blank"
+                        class="text-muted">
+                        <i class="tm-eye" />
+                        <span>View on XDCScan</span>
+                    </a>
+                </template>
+            </b-table>
+
+            <b-pagination
+                v-if="txTotalRows > 0 && txTotalRows > txPerPage"
+                :total-rows="txTotalRows"
+                :per-page="txPerPage"
+                v-model="txCurrentPage"
+                align="center"
+                class="XDC-pagination" />
         </div>
     </div>
 </template>
@@ -285,10 +368,12 @@ export default {
             voteActive: false,
             voteValue: 1,
             unvoteValue: 1,
+            config: {},
             voters: [],
             transactions: [],
+            signs: [],
             candidate: {
-                address: this.$route.params.address,
+                address: this.$route.params.address.toLowerCase(),
                 name: '',
                 balance: '',
                 status: 'active',
@@ -305,37 +390,129 @@ export default {
                 },
                 voted: 0,
                 totalVoted: 0
-            }
+            },
+            voterFields: [
+                {
+                    key: 'id',
+                    label: 'ID',
+                    sortable: false
+                },
+                {
+                    key: 'address',
+                    label: 'Address',
+                    sortable: true
+                },
+                {
+                    key: 'cap',
+                    label: 'Capacity',
+                    sortable: true
+                }
+            ],
+            voterSortBy: 'cap',
+            voterSortDesc: true,
+            voterCurrentPage: 1,
+            voterPerPage: 10,
+            voterTotalRows: 0,
+            txFields: [
+                {
+                    key: 'id',
+                    label: 'ID',
+                    sortable: false
+                },
+                {
+                    key: 'voter',
+                    label: 'Voter',
+                    sortable: true
+                },
+                {
+                    key: 'event',
+                    label: 'Event',
+                    sortable: true
+                },
+                {
+                    key: 'cap',
+                    label: 'Capacity',
+                    sortable: true
+                },
+                {
+                    key: 'tx',
+                    label: '',
+                    sortable: false
+                }
+            ],
+            txSortBy: 'cap',
+            txSortDesc: true,
+            txCurrentPage: 1,
+            txPerPage: 10,
+            txTotalRows: 0,
+            signsFields: [
+                {
+                    key: 'id',
+                    label: 'ID',
+                    sortable: false
+                },
+                {
+                    key: 'blockNumber',
+                    label: 'Block Number',
+                    sortable: false
+                },
+                {
+                    key: 'tx',
+                    label: 'Transaction Hash',
+                    sortable: false
+                }
+            ],
+            signsSortBy: 'blockNumber',
+            signsSortDesc: true,
+            signsCurrentPage: 1,
+            signsPerPage: 10,
+            signsTotalRows: 0,
+            loading: false
         }
     },
-    computed: {},
+    computed: {
+        sortedVoters: function () {
+            return this.voters.slice().sort(function (a, b) {
+                return b.cap - a.cap
+            })
+        },
+        sortedTransactions: function () {
+            return this.transactions.slice().sort(function (a, b) {
+                return b.cap - a.cap
+            })
+        }
+    },
     watch: {},
     updated () {},
     created: async function () {
         let self = this
+        self.config = await self.appConfig()
         try {
             let address = self.candidate.address
             let account = self.isReady ? await self.getAccount() : ''
+
+            self.loading = true
+
             let c = await axios.get(`/api/candidates/${address}`)
 
             if (c.data) {
                 let data = c.data
                 self.candidate.name = data.name ? data.name : 'Anonymous Candidate'
                 self.candidate.status = data.status
-                self.candidate.cap = (new BigNumber(data.capacity)).div(10 ** 18).toString()
-                self.candidate.rewarded = 1
-                self.candidate.latestBlock = '123,456'
-                self.candidate.totalSignedBlocks = 100
+                self.candidate.cap = new BigNumber(data.capacity).div(10 ** 18).toNumber()
+                self.candidate.rewarded = 0
+                self.candidate.latestBlock = '0'
+                self.candidate.totalSignedBlocks = data.totalSignedBlocks
                 self.candidate.hardwareInfo = '2.9 GHz Intel Core i5/32 TB 1867 MHz DDR3'
                 self.candidate.dataCenterInfo = {
                     name: 'AWS',
-                    location: 'Singapre'
+                    location: 'Singapore'
                 }
             }
 
             if (self.web3) {
                 self.web3.eth.getBalance(self.candidate.address, function (a, b) {
-                    self.candidate.balance = b / 10 ** 18
+                    self.candidate.balance = new BigNumber(b).div(10 ** 18)
                     if (a) {
                         console.log('got an error', a)
                     }
@@ -347,13 +524,16 @@ export default {
                 self.voters.push({
                     id: idx + 1,
                     address: v.voter,
-                    cap: (v.capacity / 10 ** 18)
+                    cap: new BigNumber(v.capacity).div(10 ** 18).toNumber()
                 })
-                self.candidate.totalVoted += (v.capacity / 10 ** 18)
+                self.candidate.totalVoted += new BigNumber(v.capacity).div(10 ** 18).toNumber()
+
                 if (v.voter === account) {
-                    self.candidate.voted += (parseFloat(v.capacity) / 10 ** 18)
+                    self.candidate.voted += new BigNumber(v.capacity).div(10 ** 18).toNumber()
                 }
             })
+
+            self.voterTotalRows = self.voters.length
 
             let txs = await axios.get(`/api/transactions/candidate/${address}`)
             txs.data.map((tx, idx) => {
@@ -363,25 +543,63 @@ export default {
                     voter: tx.voter,
                     candidate: tx.candidate,
                     event: tx.event,
-                    cap: (new BigNumber(tx.capacity)).div(10 ** 18).toString()
+                    cap: new BigNumber(tx.capacity).div(10 ** 18).toFormat()
                 })
             })
+
+            self.txTotalRows = self.transactions.length
+
+            let blockSigners = await axios.get(`/api/blocksigners/getByCandidate/${address}`)
+            blockSigners.data.map((bs, idx) => {
+                let stx = bs.signers.filter(s => {
+                    return (s.signer === address)
+                })
+                self.signs.push({
+                    id: idx + 1,
+                    tx: stx[0].tx,
+                    blockNumber: bs.blockNumber
+                })
+            })
+
+            self.signsTotalRows = self.signs.length
+
+            self.loading = false
         } catch (e) {
             console.log(e)
         }
     },
     mounted () {
+        this.fetchData()
     },
     methods: {
-        getChipClass (event) {
+        getEventClass (event) {
             let clazz = ''
-            if (event === 'Vote') {
-                clazz = 'md-primary'
-            } else if (event === 'Unvote') {
-                clazz = 'md-accent'
+            if (event === 'Unvote' || event === 'Resign') {
+                clazz = 'color-pink'
             }
 
             return clazz
+        },
+        fetchData: async function () {
+            try {
+                let apiKey = 'eyJrIjoiemJGQzlsY2M5c25VWUk0UWttVTlFQkRrUmR0bUZhN0ciLCJuIjoiZGFwcDIiLCJpZCI6MX0='
+                let host = 'Moon'
+                let db = 'telegraf'
+                let epoch = 'ms'
+
+                // eslint-disable-next-line max-len
+                let q = `SELECT mean("usage_user") FROM "cpu" WHERE ("cpu" = 'cpu0' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(10s) fill(null);SELECT mean("usage_idle") FROM "cpu" WHERE ("cpu" = 'cpu0' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(10s) fill(null)`
+                q = encodeURI(q).replace('=', '%3D').replace(';', '%3B')
+
+                // eslint-disable-next-line max-len
+                let data = await axios.get(`https://grafana-testnet.XinFin.com/api/datasources/proxy/1/query?db=${db}&q=${q}&epoch=${epoch}`, {
+                    headers: { Authorization: `Bearer ${apiKey}` }
+                })
+
+                console.log(data)
+            } catch (e) {
+                console.log(e)
+            }
         }
     }
 }

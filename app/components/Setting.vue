@@ -94,7 +94,7 @@
                     <li class="XDC-list__item">
                         <i class="tm-XDC XDC-list__icon" />
                         <div class="XDC-list__text">
-                            <p class="color-white mb-0">{{ formatNumber(balance) }}
+                            <p class="color-white mb-0">{{ balance }}
                             <span class="text-muted">{{ getCurrencySymbol() }}</span></p>
                             <span>Balance</span>
                         </div>
@@ -106,6 +106,7 @@
 </template>
 <script>
 import Web3 from 'web3'
+import BigNumber from 'bignumber.js'
 import { validationMixin } from 'vuelidate'
 import {
     required
@@ -156,7 +157,7 @@ export default {
             let account = await self.getAccount()
             self.address = account
             self.web3.eth.getBalance(self.address, function (a, b) {
-                self.balance = b / 10 ** 18
+                self.balance = new BigNumber(b).div(10 ** 18).toFormat()
                 if (a) {
                     console.log('got an error', a)
                 }
@@ -202,12 +203,12 @@ export default {
                         wjs = new Web3(p)
                     }
                 } else {
-                        const walletProvider =
-                            (self.mnemonic.indexOf(' ') >= 0)
-                                ? new HDWalletProvider(self.mnemonic, self.networks[self.provider])
-                                : new PrivateKeyProvider(self.mnemonic, self.networks[self.provider])
+                    const walletProvider =
+                        (self.mnemonic.indexOf(' ') >= 0)
+                            ? new HDWalletProvider(self.mnemonic, self.networks[self.provider])
+                            : new PrivateKeyProvider(self.mnemonic, self.networks[self.provider])
 
-                        wjs = new Web3(walletProvider)
+                    wjs = new Web3(walletProvider)
                 }
 
                 self.setupProvider(this.provider, wjs)

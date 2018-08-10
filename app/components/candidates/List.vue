@@ -1,7 +1,6 @@
 <template>
     <div>
         <div
-            v-if="isReady"
             class="container section section--status">
             <div class="row">
                 <div class="col-12">
@@ -14,26 +13,27 @@
                     <b-card class="XDC-card XDC-card--animated">
                         <h6 class="XDC-card__title">Current Block</h6>
                         <p class="XDC-card__text">
-                            <router-link :to="'/blocksigners'">#{{ blockNumber }}</router-link>
+                            <router-link :to="'/blocksigners'">#{{ chainConfig.blockNumber }}</router-link>
                         </p>
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <b-card class="XDC-card XDC-card--animated">
-                        <h6 class="XDC-card__title">AVG Block Time</h6>
-                        <p class="XDC-card__text">2.00 s</p>
+                        <h6 class="XDC-card__title">Block Time</h6>
+                        <p class="XDC-card__text">{{ chainConfig.blockTime }}.00 s</p>
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <b-card class="XDC-card XDC-card--animated">
                         <h6 class="XDC-card__title">epoch</h6>
-                        <p class="XDC-card__text">990 blocks</p>
+                        <p class="XDC-card__text">{{ chainConfig.epoch }} blocks</p>
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <b-card class="XDC-card XDC-card--animated">
                         <h6 class="XDC-card__title">Next Checkpoint</h6>
-                        <p class="XDC-card__text">#{{ nextCheckpoint }}</p>
+                        <p class="XDC-card__text">#{{ parseInt(chainConfig.epoch)
+                        + parseInt(chainConfig.blockNumber) }}</p>
                     </b-card>
                 </div>
             </div>
@@ -76,7 +76,7 @@
 
                 <template
                     slot="cap"
-                    slot-scope="data">{{ formatCurrencySymbol(formatNumber(data.item.cap)) }}
+                    slot-scope="data">{{ formatCurrencySymbol(data.item.cap) }}
                 </template>
 
                 <template
@@ -91,7 +91,7 @@
                         </span>
                         <span
                             v-if="data.item.isMasternode"
-                            class="XDC-chip XDC-chip--yellow">MASTERNODE</span>
+                            class="XDC-chip XDC-chip--purple">MASTERNODE</span>
                     </div>
                 </template>
 
@@ -146,6 +146,7 @@ export default {
     name: 'App',
     data () {
         return {
+            chainConfig: {},
             fields: [
                 {
                     key: 'index',
@@ -187,15 +188,14 @@ export default {
             sortDesc: true,
             isReady: !!this.web3,
             account: '',
-            blockNumber: 0,
-            nextCheckpoint: 0,
             voteActive: false,
             voteValue: 1,
             voteItem: {},
             candidates: [],
             currentPage: 1,
             perPage: 10,
-            totalRows: 0
+            totalRows: 0,
+            loading: false
         }
     },
     computed: {
@@ -218,11 +218,14 @@ export default {
                     }
 
                     if (candidate.status === 'RESIGNED') {
-                        cssClass = 'XDC-table--candidates-6-cols-resigned'
+                        cssClass = 'XDC-table--candidates-6-cols-withdraw'
                     }
                     break
                 }
             }
+
+            cssClass += this.loading ? ' XDC-table--loading' : ''
+
             return cssClass
         }
     },
@@ -230,11 +233,15 @@ export default {
     updated () {},
     created: async function () {
         let self = this
+        let config = await self.appConfig()
+        self.chainConfig = config.blockchain
         try {
             if (self.isReady) {
                 let account = await self.getAccount()
                 self.account = account
             }
+
+            self.loading = true
 
             let signers = await axios.get('/api/signers/get/latest')
             let candidates = await axios.get('/api/candidates')
@@ -246,21 +253,11 @@ export default {
                     status: candidate.status,
                     isMasternode: isMasternode,
                     name: candidate.name || 'Anonymous',
-                    cap: (new BigNumber(candidate.capacity)).div(10 ** 18).toString()
+                    cap: (new BigNumber(candidate.capacity)).div(10 ** 18).toFormat()
                 })
             })
 
             self.totalRows = self.candidates.length
-
-            self.web3.eth.getBlockNumber(function (error, result) {
-                if (error) {
-                    console.log(error)
-                    throw Error('Can not read current block number')
-                } else {
-                    self.blockNumber = result
-                    self.nextCheckpoint = 990 * (Math.floor(self.blockNumber / 990) + 1)
-                }
-            })
         } catch (e) {
             console.log(e)
         }

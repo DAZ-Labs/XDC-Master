@@ -21,9 +21,9 @@
                 <b-card
                     :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
                     + (loading ? ' XDC-loading' : '')">
-                    <h2 class="h4 color-white XDC-card__title XDC-card__title--big">Unvote
+                    <h4 class=" color-white XDC-card__title XDC-card__title--big">Unvote
                         <span class="XDC-card__subtitle">You will receive $XDC after unvoting</span>
-                    </h2>
+                    </h4>
                     <ul class="XDC-list list-unstyled">
                         <li class="XDC-list__item">
                             <i class="tm-wallet XDC-list__icon" />
@@ -94,6 +94,7 @@
 </template>
 <script>
 import axios from 'axios'
+import BigNumber from 'bignumber.js'
 import { validationMixin } from 'vuelidate'
 import {
     required,
@@ -139,7 +140,7 @@ export default {
             let voters = await axios.get(`/api/candidates/${candidate}/voters`)
             voters.data.map((v) => {
                 if (v.voter === account) {
-                    self.voted += (parseFloat(v.capacity) / 10 ** 18)
+                    self.voted += new BigNumber(v.capacity).div(10 ** 18).toNumber()
                 }
             })
         } catch (e) {

@@ -20,6 +20,8 @@ import Web3 from 'web3'
 import { default as contract } from 'truffle-contract'
 import XDCValidatorArtifacts from '../build/contracts/XDCValidator.json'
 import Toasted from 'vue-toasted'
+import axios from 'axios'
+import BigNumber from 'bignumber.js'
 
 Vue.use(BootstrapVue)
 
@@ -92,6 +94,15 @@ Vue.prototype.formatCurrencySymbol = function (number) {
 
 Vue.prototype.getCurrencySymbol = function () {
     return '$XDC'
+}
+
+Vue.prototype.formatBigNumber = function (num, dp) {
+    return new BigNumber(num).toFormat(dp)
+}
+
+Vue.prototype.appConfig = async function () {
+    let config = await axios.get('/api/config')
+    return config.data
 }
 
 Vue.use(VueRouter)

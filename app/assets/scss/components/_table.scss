@@ -1,5 +1,6 @@
 .XDC-table {
     width: 100%;
+    overflow: hidden;
     margin-bottom: 50px;
   
     thead {
@@ -159,7 +160,19 @@
     }
 }
 
+.XDC-table--loading {
+
+    tr.b-table-empty-row > td div.text-center {
+        font-size: 0;
+    }
+
+    tr.b-table-empty-row > td div.text-center:before {
+        content: url(~/app/assets/img/loading.svg);
+    }
+}
+
 .XDC-table--candidates {
+    margin-bottom: 0;
 
     .btn {
         padding: 9px 14px;
@@ -183,7 +196,7 @@
     }
 
     &.XDC-table--candidates-6-cols,
-    &.XDC-table--candidates-6-cols-resigned {
+    &.XDC-table--candidates-6-cols-withdraw {
         th[aria-colindex="6"],
         td[aria-colindex="6"] {
             display: none;
@@ -200,7 +213,7 @@
 
         thead tr,
         tbody tr {
-            grid-template-columns: 5% auto 15% 20% 190px 110px 62px;
+            grid-template-columns: 5% auto 14% 20% 210px 110px 72px;
             padding-top: 0;
             padding-bottom: 0;
             padding-right: 0;
@@ -208,6 +221,7 @@
 
         tbody tr.b-table-empty-row {
             grid-template-columns: 100% !important;
+            padding: 0;
         }
 
         th[aria-colindex="4"].sorting,
@@ -345,17 +359,32 @@
                 max-width: 14rem;
             }
 
+            th[aria-colindex="7"] {
+                position: relative;
+    
+                &:after {
+                    content: '';
+                    display: block;
+                    height: 1000px;
+                    width: 100%;
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    background-color: $color-body-bg;
+                }
+            }
+
             thead tr,
             tbody tr {
-                grid-template-columns: 5% auto 15% 20% 190px 62px;
+                grid-template-columns: 5% auto 14% 20% 210px 72px;
             }
         }
 
-        &.XDC-table--candidates-6-cols-resigned {
+        &.XDC-table--candidates-6-cols-withdraw {
 
             thead tr,
             tbody tr {
-                grid-template-columns: 5% auto 15% 20% 190px 100px;
+                grid-template-columns: 5% auto 15% 20% 210px 110px;
             }
 
             td[aria-colindex="7"] {
@@ -383,7 +412,8 @@
 
         &.XDC-table--candidates-empty {
 
-            th[aria-colindex="5"]:after {
+            th[aria-colindex="5"]:after,
+            th[aria-colindex="7"]:after {
                 display: none;
             }
         }
@@ -430,6 +460,108 @@
         th[aria-colindex="3"],
         td[aria-colindex="3"] {
             text-align: right;
+        }
+    }
+}
+
+.XDC-table--transactions {
+
+    @include media-breakpoint-up(lg) {
+
+        .text-truncate {
+            max-width: 100%;
+        }
+
+        thead tr,
+        tbody tr {
+            padding-right: 0;
+            grid-template-columns: 5% auto 15% 20% 10%;
+        }
+
+        th[aria-colindex="4"],
+        td[aria-colindex="4"] {
+            text-align: right;
+        }
+
+        th[aria-colindex="5"],
+        td[aria-colindex="5"] {
+            text-align: center;
+
+            a > span {
+                font-size: 0;
+            }
+
+            i {
+                font-size: 15px;
+            }
+
+            a:hover {
+                color: $color-link !important;
+            }
+        }
+    }
+}
+
+.XDC-table--signers {
+
+    td {
+        grid-template-columns: 30% auto !important;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        > li:before {
+            font-size: 5px;
+            vertical-align: middle;
+            margin-right: 8px;
+
+            @include tm-icon('\e913');
+        }
+    }
+
+    .text-truncate {
+        max-width: 8rem;
+    }
+
+    @include media-breakpoint-only(sm) {
+        .text-truncate {
+            max-width: 15rem;
+        }
+    }
+
+    @include media-breakpoint-only(md) {
+        .text-truncate {
+            max-width: 10rem;
+        }
+    }
+
+    @include media-breakpoint-up(lg) {
+
+        .text-truncate {
+            max-width: 100%;
+        }
+
+        thead tr,
+        tbody tr {
+            grid-template-columns: 15% auto;
+        }
+    }
+}
+
+.XDC-table--signed {
+
+    @include media-breakpoint-up(lg) {
+
+        .text-truncate {
+            max-width: 100%;
+        }
+
+        thead tr,
+        tbody tr {
+            grid-template-columns: 10% 25% auto;
         }
     }
 }
