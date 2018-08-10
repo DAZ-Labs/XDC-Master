@@ -20,6 +20,7 @@
                     </p>
                     <p
                         v-b-tooltip.hover
+                        v-b-tooltip.html.bottom
                         :title="`${formatCurrencySymbol(formatBigNumber(balance, 6))}`"
                         class="XDC-info__description">
                         {{ formatCurrencySymbol(formatBigNumber(balance, 3)) }}
@@ -166,6 +167,7 @@ export default {
 
             self.loading = false
         } catch (e) {
+            self.loading = false
             console.log(e)
         }
     }

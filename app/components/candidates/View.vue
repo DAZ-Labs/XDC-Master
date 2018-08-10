@@ -130,18 +130,18 @@
                         </p>
                     </div>
                 </div>
-                <b-card-footer
-                    v-if="candidate.status !== 'RESIGNED'"
-                    class="text-right">
-                    <b-button
-                        v-if="candidate.voted > 0"
-                        :to="`/unvoting/${candidate.address}`"
-                        variant="secondary">Unvote</b-button>
-                    <b-button
-                        :to="`/voting/${candidate.address}`"
-                        variant="primary">Vote</b-button>
-                </b-card-footer>
             </b-card>
+            <div
+                v-if="candidate.status !== 'RESIGNED'"
+                class="buttons text-right">
+                <b-button
+                    v-if="candidate.voted > 0"
+                    :to="`/unvoting/${candidate.address}`"
+                    variant="secondary">Unvote</b-button>
+                <b-button
+                    :to="`/voting/${candidate.address}`"
+                    variant="primary">Vote</b-button>
+            </div>
         </div>
         <div class="container section section--hardware">
             <div class="row">
@@ -150,27 +150,22 @@
                         <i class="tm-cpu color-pink" />
                         <span>CPUs</span>
                     </h3>
-                    <!-- <iframe
-                        src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
-                        orgId=1&panelId=2"
-                        width="100%"
-                        frameborder="0" />
-                    <iframe
-                        src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin?
-                        orgId=1&panelId=6"
-                        width="100%"
-                        frameborder="0" /> -->
+                    <chart
+                        host="Moon"
+                        data-type="cpu0"
+                        class="mb-5" />
+                    <chart
+                        host="Moon"
+                        data-type="cpu1" />
                 </div>
                 <div class="col-12 col-lg-6">
                     <h3 class="section-title">
                         <i class="tm-memory color-orange" />
                         <span>Memory</span>
                     </h3>
-                    <!-- <iframe
-                        src="https://grafana-testnet.XinFin.com/d-solo/GaPA-Y4mk/XinFin
-                        ?orgId=1&panelId=4"
-                        width="100%"
-                        frameborder="0" /> -->
+                    <chart
+                        host="Moon"
+                        data-type="memory" />
                 </div>
             </div>
         </div>
@@ -199,7 +194,7 @@
 
                 <template
                     slot="id"
-                    slot-scope="data">{{ data.item.id }}
+                    slot-scope="data">{{ data.index + 1 }}
                 </template>
 
                 <template
@@ -211,13 +206,23 @@
                     slot="tx"
                     slot-scope="data">
                     <a
+                        :href="`${config.explorerUrl}/txs/${data.item.tx}`"
+                        class="text-truncate">
+                        {{ data.item.tx }}
+                    </a>
+                </template>
+
+                <template
+                    slot="action"
+                    slot-scope="data">
+                    <a
                         v-b-tooltip.hover
                         v-b-tooltip.html.right
                         :href="`${config.explorerUrl}/txs/${data.item.tx}`"
                         title="View on XDCScan"
-                        target="_blank"
-                        class="text-truncate">
-                        {{ data.item.tx }}
+                        target="_blank">
+                        <i class="tm-eye" />
+                        <span>View on XDCScan</span>
                     </a>
                 </template>
             </b-table>
@@ -338,8 +343,7 @@
                         v-b-tooltip.html.right
                         :href="`${config.explorerUrl}/txs/${data.item.tx}`"
                         title="View on XDCScan"
-                        target="_blank"
-                        class="text-muted">
+                        target="_blank">
                         <i class="tm-eye" />
                         <span>View on XDCScan</span>
                     </a>
@@ -359,9 +363,13 @@
 <script>
 import axios from 'axios'
 import BigNumber from 'bignumber.js'
+import Chart from '../Chart.vue'
 
 export default {
     name: 'App',
+    components: {
+        chart: Chart
+    },
     data () {
         return {
             isReady: !!this.web3,
@@ -391,6 +399,33 @@ export default {
                 voted: 0,
                 totalVoted: 0
             },
+            signsFields: [
+                {
+                    key: 'id',
+                    label: 'ID',
+                    sortable: false
+                },
+                {
+                    key: 'blockNumber',
+                    label: 'Block No.',
+                    sortable: false
+                },
+                {
+                    key: 'tx',
+                    label: 'Tx Hash',
+                    sortable: false
+                },
+                {
+                    key: 'action',
+                    label: '',
+                    sortable: false
+                }
+            ],
+            signsSortBy: 'blockNumber',
+            signsSortDesc: true,
+            signsCurrentPage: 1,
+            signsPerPage: 10,
+            signsTotalRows: 0,
             voterFields: [
                 {
                     key: 'id',
@@ -445,29 +480,9 @@ export default {
             txCurrentPage: 1,
             txPerPage: 10,
             txTotalRows: 0,
-            signsFields: [
-                {
-                    key: 'id',
-                    label: 'ID',
-                    sortable: false
-                },
-                {
-                    key: 'blockNumber',
-                    label: 'Block Number',
-                    sortable: false
-                },
-                {
-                    key: 'tx',
-                    label: 'Transaction Hash',
-                    sortable: false
-                }
-            ],
-            signsSortBy: 'blockNumber',
-            signsSortDesc: true,
-            signsCurrentPage: 1,
-            signsPerPage: 10,
-            signsTotalRows: 0,
-            loading: false
+            loading: false,
+            chartLoading: false,
+            cpu0Series: []
         }
     },
     computed: {
@@ -555,7 +570,6 @@ export default {
                     return (s.signer === address)
                 })
                 self.signs.push({
-                    id: idx + 1,
                     tx: stx[0].tx,
                     blockNumber: bs.blockNumber
                 })
@@ -565,12 +579,11 @@ export default {
 
             self.loading = false
         } catch (e) {
+            self.loading = false
             console.log(e)
         }
     },
-    mounted () {
-        this.fetchData()
-    },
+    mounted () {},
     methods: {
         getEventClass (event) {
             let clazz = ''
@@ -579,27 +592,6 @@ export default {
             }
 
             return clazz
-        },
-        fetchData: async function () {
-            try {
-                let apiKey = 'eyJrIjoiemJGQzlsY2M5c25VWUk0UWttVTlFQkRrUmR0bUZhN0ciLCJuIjoiZGFwcDIiLCJpZCI6MX0='
-                let host = 'Moon'
-                let db = 'telegraf'
-                let epoch = 'ms'
-
-                // eslint-disable-next-line max-len
-                let q = `SELECT mean("usage_user") FROM "cpu" WHERE ("cpu" = 'cpu0' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(10s) fill(null);SELECT mean("usage_idle") FROM "cpu" WHERE ("cpu" = 'cpu0' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(10s) fill(null)`
-                q = encodeURI(q).replace('=', '%3D').replace(';', '%3B')
-
-                // eslint-disable-next-line max-len
-                let data = await axios.get(`https://grafana-testnet.XinFin.com/api/datasources/proxy/1/query?db=${db}&q=${q}&epoch=${epoch}`, {
-                    headers: { Authorization: `Bearer ${apiKey}` }
-                })
-
-                console.log(data)
-            } catch (e) {
-                console.log(e)
-            }
         }
     }
 }

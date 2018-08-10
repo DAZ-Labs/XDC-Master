@@ -22,6 +22,9 @@ import XDCValidatorArtifacts from '../build/contracts/XDCValidator.json'
 import Toasted from 'vue-toasted'
 import axios from 'axios'
 import BigNumber from 'bignumber.js'
+import HighchartsVue from 'highcharts-vue'
+import Highcharts from 'highcharts'
+import stockInit from 'highcharts/modules/stock'
 
 Vue.use(BootstrapVue)
 
@@ -36,6 +39,9 @@ Vue.use(Toasted, {
         }
     }
 })
+
+stockInit(Highcharts)
+Vue.use(HighchartsVue)
 
 Vue.prototype.XDCValidator = contract(XDCValidatorArtifacts)
 Vue.prototype.isElectron = !!(window && window.process && window.process.type)
@@ -97,7 +103,11 @@ Vue.prototype.getCurrencySymbol = function () {
 }
 
 Vue.prototype.formatBigNumber = function (num, dp) {
-    return new BigNumber(num).toFormat(dp)
+    if (num.toString().length > 6) {
+        return new BigNumber(num).toFormat(dp)
+    }
+
+    return num
 }
 
 Vue.prototype.appConfig = async function () {
