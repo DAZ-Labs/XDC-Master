@@ -32,8 +32,9 @@
                 <div class="col-md-6 col-lg-3">
                     <b-card class="XDC-card XDC-card--animated">
                         <h6 class="XDC-card__title">Next Checkpoint</h6>
-                        <p class="XDC-card__text">#{{ parseInt(chainConfig.epoch)
-                        + parseInt(chainConfig.blockNumber) }}</p>
+                        <p class="XDC-card__text">
+                            <!-- eslint-disable-next-line max-len -->
+                            #{{ parseInt(chainConfig.epoch) * (Math.floor(parseInt(chainConfig.blockNumber) / parseInt(chainConfig.epoch) + 1)) }}</p>
                     </b-card>
                 </div>
             </div>

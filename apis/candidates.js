@@ -19,10 +19,11 @@ router.get('/', async function (req, res, next) {
 
 router.get('/:candidate', async function (req, res, next) {
     let validator = await Validator.deployed()
-    let candidate = await db.Candidate.findOne({
+    let candidate = (await db.Candidate.findOne({
         smartContractAddress: validator.address,
         candidate: req.params.candidate
-    })
+    }) || {})
+
     candidate.totalSignedBlocks = await db.BlockSigner.count({
         'signers.signer': req.params.candidate
     })
@@ -50,7 +51,7 @@ router.post('/apply', async function (req, res, next) {
                 : new PrivateKeyProvider(key, network)
         Validator.setProvider(walletProvider)
         let validator = await Validator.deployed()
-        await validator.propose(req.query.coinbase, '', {
+        await validator.propose(req.query.coinbase, (req.query.nodeId || ''), {
             from : walletProvider.address,
             value: 50000 * 10 ** 18
         })

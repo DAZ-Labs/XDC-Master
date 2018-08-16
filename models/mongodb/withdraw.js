@@ -3,8 +3,16 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
 
-var BlockSigner = new Schema({
+var Withdraw = new Schema({
     smartContractAddress: {
+        type: String,
+        index: true
+    },
+    tx: {
+        type: String,
+        index: true
+    },
+    owner: {
         type: String,
         index: true
     },
@@ -12,17 +20,7 @@ var BlockSigner = new Schema({
         type: String,
         index: true
     },
-    blockHash: {
-        type: String,
-        index: true
-    },
-    signers: [{
-        signer: {
-            type: String,
-            index: true
-        },
-        tx: String
-    }]
+    capacity: String
 }, { timestamps: true })
 
-module.exports = mongoose.model('BlockSigner', BlockSigner)
+module.exports = mongoose.model('Withdraw', Withdraw)

@@ -5,6 +5,7 @@ const { BlockSigner } = require('../models/blockchain/blockSigner')
 const chain = require('../models/blockchain/chain')
 const db = require('../models/mongodb')
 const config = require('config')
+const q = require('../queues')
 
 async function watchBlockSigner () {
     let bs = await BlockSigner.deployed()
@@ -34,15 +35,17 @@ async function watchBlockSigner () {
         let signer = res.args._signer
         let tx = res.transactionHash
         let bN = String(res.args._blockNumber)
+        let bH = String(res.args._blockHash)
         cs.save()
 
         return db.BlockSigner.update({
             smartContractAddress: bs.address,
-            blockNumber: bN
+            blockHash: bH
         }, {
             $set: {
                 smartContractAddress: bs.address,
-                blockNumber: bN
+                blockNumber: bN,
+                blockHash: bH
             },
             $addToSet: {
                 signers: {
@@ -72,7 +75,7 @@ async function watchValidator () {
             console.error(err, res)
             return false
         }
-        console.info('New event %s from block %s', res.event, res.blockNumber)
+        console.info('XDCValidator - New event %s from block %s', res.event, res.blockNumber)
         if (cs) {
             cs.blockNumber = res.blockNumber
         } else {
@@ -82,13 +85,27 @@ async function watchValidator () {
             })
         }
         let event = res.event
+        if (event === 'Withdraw') {
+            let owner = res.args._owner
+            let blockNumber = res.args._blockNumber
+            let capacity = res.args._cap
+            let wd = new db.Withdraw({
+                smartContractAddress: v.address,
+                blockNumber: blockNumber,
+                tx: res.transactionHash,
+                owner: owner,
+                capacity: capacity
+            })
+            wd.save()
+            cs.save()
+            return true
+        }
         let candidate = res.args._candidate
         let voter = res.args._voter
         let owner = res.args._owner
         let capacity = res.args._cap
         let tx = new db.Transaction({
             smartContractAddress: v.address,
-            blockNumber: res.blockNumber,
             tx: res.transactionHash,
             event: event,
             voter: voter,
@@ -125,6 +142,8 @@ async function watch () {
                 signers: signers
             })
         }
+        q.create('reward', { block: blk })
+            .priority('low').removeOnComplete(true).save()
     })
 
     watchBlockSigner()
@@ -135,7 +154,7 @@ async function updateCandidateInfo (candidate) {
     try {
         let validator = await Validator.deployed()
         let capacity = await validator.getCandidateCap.call(candidate)
-        let nodeUrl = await validator.getCandidateNodeUrl.call(candidate)
+        let nodeId = await validator.getCandidateNodeId.call(candidate)
         let owner = await validator.getCandidateOwner.call(candidate)
         let status = await validator.isCandidate.call(candidate)
         let result
@@ -149,7 +168,7 @@ async function updateCandidateInfo (candidate) {
                     smartContractAddress: validator.address,
                     candidate: candidate,
                     capacity: String(capacity),
-                    nodeUrl: nodeUrl,
+                    nodeId: nodeId,
                     status: (status) ? 'PROPOSED' : 'RESIGNED',
                     owner: String(owner)
                 }
