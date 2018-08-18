@@ -118,6 +118,11 @@ async function watchValidator () {
         if (event === 'Vote' || event === 'Unvote') {
             updateVoterCap(candidate, voter)
         }
+        if (event === 'Resign') {
+            updateVoterCap(candidate, owner)
+        }
+        q.create('voteHistory', { candidate, blockNumber })
+            .priority('low').removeOnComplete(true).save()
         updateCandidateInfo(candidate)
     })
 }
@@ -214,7 +219,17 @@ async function getCurrentCandidates () {
         let validator = await Validator.deployed()
         let candidates = await validator.getCandidates.call()
 
-        let map = candidates.map((candidate) => {
+        let map = candidates.map(async (candidate) => {
+            let voters = await validator.getVoters.call(candidate)
+            let m = voters.map(v => {
+                return updateVoterCap(candidate, v)
+            })
+
+            // init vote history
+            q.create('voteHistory', { candidate, blockNumber: 0 })
+                .priority('low').removeOnComplete(true).save()
+
+            await Promise.all(m)
             return updateCandidateInfo(candidate)
         })
         return Promise.all(map).catch(e => console.error(e))

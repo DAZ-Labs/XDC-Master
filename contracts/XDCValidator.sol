@@ -65,6 +65,9 @@ contract XDCValidator {
 
     modifier onlyValidVote (address _candidate, uint256 _cap) {
         require(validatorsState[_candidate].voters[msg.sender] >= _cap);
+        if (validatorsState[_candidate].owner == msg.sender) {
+            require(validatorsState[_candidate].voters[msg.sender].sub(_cap) >= minCandidateCap);
+        }
         _;
     }
 
@@ -113,7 +116,7 @@ contract XDCValidator {
         });
         validatorsState[_candidate].voters[msg.sender] = msg.value;
         candidateCount = candidateCount + 1;
-        voters[_candidate].push(_candidate);
+        voters[_candidate].push(msg.sender);
         emit Propose(msg.sender, _candidate, msg.value);
     }
 

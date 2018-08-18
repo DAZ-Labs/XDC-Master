@@ -29,25 +29,24 @@
                         + candidate.status">
                         <p class="XDC-info__title">
                             <i class="tm-dot XDC-info__icon" />
-                            <span class="XDC-info__text">Node Status</span>
+                            <span class="XDC-info__text">Owner</span>
                         </p>
-                        <p class="XDC-info__description">{{ candidate.nodeStatus }}</p>
+                        <p class="XDC-info__description">
+                            <a
+                                :href="`${config.explorerUrl}/address/${candidate.owner}`"
+                                target="_blank"
+                                class="text-truncate">
+                                {{ (candidate.owner || '').substring(0, 8) }}...
+                            </a>
+                        </p>
                     </div>
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 XDC-info">
                         <p class="XDC-info__title">
                             <i class="tm-dot XDC-info__icon" />
-                            <span class="XDC-info__text">Balance</span>
+                            <span class="XDC-info__text">Total Signed Blocks</span>
                         </p>
-                        <p
-                            id="XDC-info__description--balance"
-                            class="XDC-info__description">
-                            {{ formatCurrencySymbol(formatBigNumber(candidate.balance, 3)) }}
-                            <b-tooltip
-                                v-if="checkLongNumber(candidate.balance)"
-                                ref="tooltip"
-                                target="XDC-info__description--balance">
-                                {{ formatCurrencySymbol(formatBigNumber(candidate.balance, 6)) }}
-                            </b-tooltip>
+                        <p class="XDC-info__description">
+                            {{ formatNumber(candidate.totalSignedBlocks) }}
                         </p>
                     </div>
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 XDC-info">
@@ -125,24 +124,27 @@
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 m-xl-0 XDC-info">
                         <p class="XDC-info__title">
                             <i class="tm-dot XDC-info__icon" />
-                            <span class="XDC-info__text">Owner</span>
+                            <span class="XDC-info__text">Monitor</span>
                         </p>
                         <p class="XDC-info__description">
-                            <a
-                                :href="`${config.explorerUrl}/address/${candidate.owner}`"
-                                target="_blank"
-                                class="text-truncate">
-                                {{ (candidate.owner || '').substring(0, 8) }}...
-                            </a>
+                            {{ candidate.monitor }}
                         </p>
                     </div>
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 m-xl-0 XDC-info">
                         <p class="XDC-info__title">
                             <i class="tm-dot XDC-info__icon" />
-                            <span class="XDC-info__text">Total Signed Blocks</span>
+                            <span class="XDC-info__text">Balance</span>
                         </p>
-                        <p class="XDC-info__description">
-                            {{ formatNumber(candidate.totalSignedBlocks) }}
+                        <p
+                            id="XDC-info__description--balance"
+                            class="XDC-info__description">
+                            {{ formatCurrencySymbol(formatBigNumber(candidate.balance, 3)) }}
+                            <b-tooltip
+                                v-if="checkLongNumber(candidate.balance)"
+                                ref="tooltip"
+                                target="XDC-info__description--balance">
+                                {{ formatCurrencySymbol(formatBigNumber(candidate.balance, 6)) }}
+                            </b-tooltip>
                         </p>
                     </div>
                     <div class="col-12 col-md-6 col-lg-6 col-xl-4 order-md-1 order-lg-0 m-xl-0 XDC-info">
@@ -169,18 +171,24 @@
                 </div>
             </b-card>
             <div
-                v-if="candidate.status !== 'RESIGNED'"
                 class="buttons text-right">
+                <b-button
+                    v-if="candidate.owner === account && candidate.status !== 'RESIGNED'"
+                    :to="`/resign/${candidate.address}`"
+                    variant="secondary">Resign</b-button>
                 <b-button
                     v-if="candidate.voted > 0"
                     :to="`/unvoting/${candidate.address}`"
                     variant="secondary">Unvote</b-button>
                 <b-button
+                    v-if="candidate.status !== 'RESIGNED'"
                     :to="`/voting/${candidate.address}`"
                     variant="primary">Vote</b-button>
             </div>
         </div>
-        <div class="container section section--hardware">
+        <div
+            v-if="candidate.status !== 'RESIGNED' && candidate.nodeId"
+            class="container section section--hardware">
             <div class="row">
                 <div class="col-12 col-lg-6">
                     <h3 class="section-title">
@@ -188,11 +196,11 @@
                         <span>CPUs</span>
                     </h3>
                     <chart
-                        host="Moon"
+                        :host="candidate.nodeId"
                         data-type="cpu0"
                         class="mb-5" />
                     <chart
-                        host="Moon"
+                        :host="candidate.nodeId"
                         data-type="cpu1" />
                 </div>
                 <div class="col-12 col-lg-6">
@@ -201,7 +209,7 @@
                         <span>Memory</span>
                     </h3>
                     <chart
-                        host="Moon"
+                        :host="candidate.nodeId"
                         data-type="memory" />
                 </div>
             </div>
@@ -408,6 +416,7 @@ export default {
     data () {
         return {
             isReady: !!this.web3,
+            account: '',
             voteActive: false,
             voteValue: 1,
             unvoteValue: 1,
@@ -540,6 +549,7 @@ export default {
         try {
             let address = self.candidate.address
             let account = self.isReady ? await self.getAccount() : ''
+            self.account = account
 
             self.loading = true
 
@@ -549,7 +559,8 @@ export default {
                 let data = c.data
                 self.candidate.name = data.name ? data.name : 'Anonymous Candidate'
                 self.candidate.status = data.status
-                self.candidate.nodeStatus = data.nodeStatus || 'OFF'
+                self.candidate.nodeId = data.nodeId
+                self.candidate.monitor = (data.nodeId) ? 'ON' : 'OFF'
                 self.candidate.owner = data.owner
                 self.candidate.cap = new BigNumber(data.capacity).div(10 ** 18).toNumber()
                 self.candidate.rewarded = 0
