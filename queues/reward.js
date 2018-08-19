@@ -26,7 +26,7 @@ consumer.task = async function (job, done) {
 
     let signers = (sn || {}).signers || []
 
-    console.log('Rewarding', signers)
+    console.log('Reward masternodes', signers)
 
     let totalReward = 10 // XDC
     let mnRewardRate = 40
@@ -69,14 +69,16 @@ consumer.task = async function (job, done) {
         let candidateCap = await validator.getCandidateCap.call(r.address)
         let owner = await validator.getCandidateOwner.call(r.address)
 
-        let votersReward = mn.multipliedBy(vRewardRate / 100)
         let vmap = voters.map(v => {
-            let voterReward = mn.multipliedBy(v.capacity).div(candidateCap).multipliedBy(votersReward)
+            let voterReward = mn.multipliedBy(new BigNumber(v.capacity))
+                .div(candidateCap).multipliedBy(vRewardRate / 100)
             return db.VoterReward.create({
                 address: v.address,
                 candidate: r.address,
                 reward: voterReward.toString(),
                 checkpoint: blockNumber,
+                startBlockNumber: startBlockNumber,
+                endBlockNumber: endBlockNumber,
                 voted: v.capacity.toString(),
                 signNumber: r.signNumber
             })
@@ -87,7 +89,10 @@ consumer.task = async function (job, done) {
             owner: owner,
             signNumber: r.signNumber,
             reward: mnRewardState.reward,
-            checkpoint: blockNumber
+            checkpoint: blockNumber,
+            startBlockNumber: startBlockNumber,
+            endBlockNumber: endBlockNumber,
+            totalSigners: signers.length
         })
     })
 
