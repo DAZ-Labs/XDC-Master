@@ -18,25 +18,26 @@ consumer.task = async function (job, done) {
 
     let validator = await Validator.deployed()
 
-    let startBlockNumber = blockNumber - (2 * epoch)
-    let endBlockNumber = blockNumber - epoch - 1
+    let startBlockNumber = blockNumber - (2 * epoch) + 1
+    let endBlockNumber = blockNumber - epoch
     let sn = await db.Signer.findOne({
-        blockNumber: startBlockNumber
+        blockNumber: (startBlockNumber - 1)
     })
 
     let signers = (sn || {}).signers || []
 
     console.log('Reward masternodes', signers)
 
-    let totalReward = 10 // XDC
-    let mnRewardRate = 40
-    let vRewardRate = 50
-    // let fRewardRate = 10
+    let totalReward = config.get('blockchain.reward') // XDC
+    let mnRewardRate = config.get('blockchain.masternodeRewardRate')
+    let vRewardRate = config.get('blockchain.voterRewardRate')
+    let fdRewardRate = config.get('blockchain.foundationRewardRate')
+    let fdAddress = config.get('blockchain.foundationAddress')
     let reward = []
     let totalSign = 0
     let map = signers.map(async s => {
         let ns = await db.BlockSigner.count({
-            blockNumber: { $in: Array.from(new Array(epoch), (val, index) => startBlockNumber + index + 1) },
+            blockNumber: { $in: Array.from(new Array(epoch), (val, index) => startBlockNumber + index) },
             'signers.signer': s
         })
         reward.push({
@@ -50,18 +51,18 @@ consumer.task = async function (job, done) {
     await Promise.all(map)
 
     map = reward.map(async r => {
-        let mn = (new BigNumber(r.reward || 0)).plus(r.signNumber * totalReward).div(totalSign)
-            .multipliedBy(10e+18)
+        let mn = new BigNumber(r.signNumber * totalReward).div(totalSign)
+            .multipliedBy(1e+18)
 
         let mnRewardState = {
             address: r.address,
-            reward:  mn.multipliedBy(mnRewardRate / 100).toString()
+            reward:  mn.multipliedBy(mnRewardRate).div(100).toString()
         }
 
         let vh = await db.VoteHistory.findOne({
             candidate: r.address,
             blockNumber: {
-                $lt: endBlockNumber
+                $lt: blockNumber
             }
         }).sort({ blockNumber: -1 })
 
@@ -71,7 +72,7 @@ consumer.task = async function (job, done) {
 
         let vmap = voters.map(v => {
             let voterReward = mn.multipliedBy(new BigNumber(v.capacity))
-                .div(candidateCap).multipliedBy(vRewardRate / 100)
+                .div(candidateCap).multipliedBy(vRewardRate).div(100)
             return db.VoterReward.create({
                 address: v.address,
                 candidate: r.address,
@@ -94,6 +95,14 @@ consumer.task = async function (job, done) {
             endBlockNumber: endBlockNumber,
             totalSigners: signers.length
         })
+    })
+
+    await db.FdReward.create({
+        address: fdAddress,
+        reward: new BigNumber(totalReward).multipliedBy(fdRewardRate).div(100).multipliedBy(1e+18).toString(),
+        checkpoint: blockNumber,
+        startBlockNumber: startBlockNumber,
+        endBlockNumber: endBlockNumber
     })
 
     await Promise.all(map)

@@ -88,7 +88,7 @@
                             v-if="!data.item.isMasternode"
                             :class="'XDC-chip '
                             + (data.item.status === 'PROPOSED' ? 'XDC-chip--primary' : 'XDC-chip--accent') ">
-                            {{ data.item.status.toLowerCase() }}
+                            {{ data.item.status.toUpperCase() }}
                         </span>
                         <span
                             v-if="data.item.isMasternode"

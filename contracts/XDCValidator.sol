@@ -9,12 +9,10 @@ contract XDCValidator {
     event Unvote(address _voter, address _candidate, uint256 _cap);
     event Propose(address _owner, address _candidate, uint256 _cap);
     event Resign(address _owner, address _candidate);
-    event SetNodeId(address _owner, address _candidate, string _nodeId);
     event Withdraw(address _owner, uint256 _blockNumber, uint256 _cap);
 
     struct ValidatorState {
         address owner;
-        string nodeId;
         bool isCandidate;
         uint256 cap;
         mapping(address => uint256) voters;
@@ -31,7 +29,7 @@ contract XDCValidator {
     mapping(address => address[]) voters;
     address[] public candidates;
 
-    uint256 public candidateCount = 3;
+    uint256 public candidateCount = 0;
     uint256 public minCandidateCap;
     uint256 public maxValidatorNumber;
     uint256 public candidateWithdrawDelay;
@@ -92,12 +90,12 @@ contract XDCValidator {
         maxValidatorNumber = _maxValidatorNumber;
         candidateWithdrawDelay = _candidateWithdrawDelay;
         voterWithdrawDelay = _voterWithdrawDelay;
+        candidateCount = candidateCount.add(_candidates.length);
 
         for (uint256 i = 0; i < _candidates.length; i++) {
             candidates.push(_candidates[i]);
             validatorsState[_candidates[i]] = ValidatorState({
                 owner: _firstOwner,
-                nodeId: '',
                 isCandidate: true,
                 cap: _caps[i]
             });
@@ -106,16 +104,16 @@ contract XDCValidator {
         }
     }
 
-    function propose(address _candidate, string _nodeId) external payable onlyValidCandidateCap onlyNotCandidate(_candidate) {
+    function propose(address _candidate) external payable onlyValidCandidateCap onlyNotCandidate(_candidate) {
+        uint256 cap = validatorsState[_candidate].cap.add(msg.value);
         candidates.push(_candidate);
         validatorsState[_candidate] = ValidatorState({
             owner: msg.sender,
-            nodeId: _nodeId,
             isCandidate: true,
-            cap: msg.value
+            cap: cap
         });
         validatorsState[_candidate].voters[msg.sender] = msg.value;
-        candidateCount = candidateCount + 1;
+        candidateCount = candidateCount.add(1);
         voters[_candidate].push(msg.sender);
         emit Propose(msg.sender, _candidate, msg.value);
     }
@@ -135,10 +133,6 @@ contract XDCValidator {
 
     function getCandidateCap(address _candidate) public view returns(uint256) {
         return validatorsState[_candidate].cap;
-    }
-
-    function getCandidateNodeId(address _candidate) public view returns(string) {
-        return validatorsState[_candidate].nodeId;
     }
 
     function getCandidateOwner(address _candidate) public view returns(address) {
@@ -177,14 +171,9 @@ contract XDCValidator {
         emit Unvote(msg.sender, _candidate, _cap);
     }
 
-    function setNodeId(address _candidate, string _nodeId) public onlyOwner(_candidate) {
-        validatorsState[_candidate].nodeId = _nodeId;
-        emit SetNodeId(msg.sender, _candidate, _nodeId);
-    }
-
     function resign(address _candidate) public onlyOwner(_candidate) onlyCandidate(_candidate) {
         validatorsState[_candidate].isCandidate = false;
-        candidateCount = candidateCount - 1;
+        candidateCount = candidateCount.sub(1);
         for (uint256 i = 0; i < candidates.length; i++) {
             if (candidates[i] == _candidate) {
                 delete candidates[i];
@@ -194,7 +183,7 @@ contract XDCValidator {
         uint256 cap = validatorsState[_candidate].voters[msg.sender];
         validatorsState[_candidate].cap = validatorsState[_candidate].cap.sub(cap);
         validatorsState[_candidate].voters[msg.sender] = 0;
-        // refunding after retiring X blocks
+        // refunding after resigning X blocks
         uint256 withdrawBlockNumber = candidateWithdrawDelay.add(block.number);
         withdrawsState[msg.sender].caps[withdrawBlockNumber] = withdrawsState[msg.sender].caps[withdrawBlockNumber].add(cap);
         withdrawsState[msg.sender].blockNumbers.push(withdrawBlockNumber);

@@ -106,12 +106,12 @@
                         class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 XDC-info">
                         <p class="XDC-info__title">
                             <i class="tm-dot XDC-info__icon" />
-                            <span class="XDC-info__text">Rewarded</span>
+                            <span class="XDC-info__text">Recent Reward</span>
                         </p>
                         <p
                             id="XDC-info__description--you-rewarded"
                             class="XDC-info__description">
-                            {{ formatCurrencySymbol(formatNumber(candidate.rewarded)) }}
+                            {{ formatCurrencySymbol(formatNumber(recentReward)) }}
                             <b-tooltip
                                 v-if="checkLongNumber(candidate.rewarded)"
                                 ref="tooltip"
@@ -468,6 +468,7 @@ export default {
             voteActive: false,
             voteValue: 1,
             unvoteValue: 1,
+            recentReward: 0,
             config: {},
             voters: [],
             transactions: [],
@@ -729,9 +730,11 @@ export default {
                     endBlockNumber: r.endBlockNumber,
                     signNumber: r.signNumber,
                     totalSigners: r.totalSigners,
-                    reward: new BigNumber(r.reward).div(10 ** 18).toFixed(2)
+                    reward: new BigNumber(r.reward).div(1e+18).toFixed(2)
                 })
             })
+
+            self.recentReward = (self.mnRewards[0] || {}).reward || 0
 
             self.mnRewardsTotalRows = self.mnRewards.length
 
