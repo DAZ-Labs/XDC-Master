@@ -8,7 +8,7 @@
       "networkId": 89,
       "epoch": 900,
       "blockTime": 2,
-      "reward": 200,
+      "reward": 250,
       "voterRewardRate": 50,
       "masternodeRewardRate": 40,
       "foundationRewardRate": 10,
@@ -19,6 +19,7 @@
   },
   "explorerUrl": "http://localhost:3003",
   "grafanaUrl": "http://localhost:8000",
+  "grafanaApiKey": "eyJrIjoiRE1TQ3lyZ1U2ZmJkdURNRkNVNjU0RnRiakh3UElhQ3IiLCJuIjoiVG9tb21hc3RlciIsImlkIjoxfQ==",
   "redis": {
     "host": "redis",
     "port": 6379,
@@ -28,10 +29,12 @@
   "truffle": {
     "mnemonic": "",
     "minCandidateCap": "50000000000000000000000",
+    "minVoterCap": "10000000000000000000",
     "maxValidatorNumber": 150,
     "candidateWithdrawDelay": 100,
     "voterWithdrawDelay": 100,
-    "epochNumber": 990,
-    "randomNumber": 99
-  }
+    "epochNumber": 900,
+    "randomNumber": 90
+  },
+  "GA": "google analytic key"
 }

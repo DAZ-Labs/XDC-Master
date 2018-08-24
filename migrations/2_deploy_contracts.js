@@ -3,9 +3,10 @@ const XDCRandomize = artifacts.require('./XDCRandomize');
 const BlockSigner = artifacts.require('./BlockSigner');
 
 const config = require('config');
-minCandidateCap = maxValidatorNumber = candidateWithdrawDelay = voterWithdrawDelay = epochNumber = randomNumber = blockTimeSecret = blockTimeOpening = 0;
+minVoterCap = minCandidateCap = maxValidatorNumber = candidateWithdrawDelay = voterWithdrawDelay = epochNumber = randomNumber = blockTimeSecret = blockTimeOpening = 0;
 if (config.has('truffle')){
     minCandidateCap = config.get('truffle.minCandidateCap');
+    minVoterCap = config.get('truffle.minVoterCap');
     maxValidatorNumber = config.get('truffle.maxValidatorNumber');
     candidateWithdrawDelay = config.get('truffle.candidateWithdrawDelay');
     voterWithdrawDelay = config.get('truffle.voterWithdrawDelay');
@@ -26,7 +27,7 @@ module.exports = function(deployer) {
         '50000000000000000000000'
     ]
     let firstOwner = '0x487d62d33467c4842c5e54Eb370837E4E88BBA0F'
-    return deployer.deploy(XDCValidator, candidates, caps, firstOwner, minCandidateCap, maxValidatorNumber, candidateWithdrawDelay, voterWithdrawDelay).then((tv) => {
+    return deployer.deploy(XDCValidator, candidates, caps, firstOwner, minCandidateCap, minVoterCap, maxValidatorNumber, candidateWithdrawDelay, voterWithdrawDelay).then((tv) => {
         return  deployer.deploy(XDCRandomize, randomNumber)
     }). then(() => {
         return deployer.deploy(BlockSigner, epochNumber);

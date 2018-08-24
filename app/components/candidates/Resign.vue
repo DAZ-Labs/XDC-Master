@@ -41,7 +41,7 @@
             ok-title="Yes"
             cancel-title="No"
             @ok="resign()">
-            <p>If you resign, you will be able to withdraw all your deposit after 100 * 2 seconds.</p>
+            <p>If you resign, you will be able to withdraw all your deposit after 30 days.</p>
         </b-modal>
     </div>
 </template>
@@ -91,7 +91,10 @@ export default {
                 let account = await self.getAccount()
                 let contract = await self.XDCValidator.deployed()
                 let coinbase = self.coinbase
-                let rs = await contract.resign(coinbase, { from: account })
+                let rs = await contract.resign(coinbase, {
+                    from: account,
+                    gasPrice: 1
+                })
 
                 let toastMessage = rs.tx ? 'You have successfully resigned!'
                     : 'An error occurred while retiring, please try again'

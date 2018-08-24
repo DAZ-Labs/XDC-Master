@@ -179,7 +179,10 @@ export default {
 
                 let account = await self.getAccount()
                 let contract = await self.XDCValidator.deployed()
-                let rs = await contract.unvote(candidate, (parseFloat(value) * 10 ** 18), { from: account })
+                let rs = await contract.unvote(candidate, (parseFloat(value) * 10 ** 18), {
+                    from: account,
+                    gasPrice: 1
+                })
                 self.vote -= value
 
                 let toastMessage = rs.tx ? 'You have successfully unvoted!'
