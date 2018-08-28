@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import VueAnalytics from 'vue-analytics'
 import App from './App.vue'
 import CandidateView from './components/candidates/View.vue'
 import CandidateList from './components/candidates/List.vue'
@@ -117,7 +116,7 @@ Vue.prototype.formatBigNumber = function (num, dp) {
     return this.formatNumber(num)
 }
 
-const getConfig = Vue.prototype.appConfig = async function () {
+Vue.prototype.appConfig = async function () {
     let config = await axios.get('/api/config')
     return config.data
 }
@@ -170,19 +169,6 @@ const router = new VueRouter({
             path: '/setting', component: Setting
         }
     ]
-})
-
-getConfig().then((config) => {
-    Vue.use(VueAnalytics, {
-        id: config.GA,
-        router,
-        autoTraking: {
-            screenView: true
-        }
-    })
-}).catch(e => {
-    console.log(e)
-    throw e
 })
 
 new Vue({ // eslint-disable-line no-new
