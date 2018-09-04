@@ -11,7 +11,7 @@
                 <ul class="XDC-list list-unstyled">
                     <li class="XDC-list__item">
                         <i class="tm-XDC XDC-list__icon" />
-                        <span class="XDC-list__text">You have to deposit at least 50,000 $XDC</span>
+                        <span class="XDC-list__text">You have to deposit at least 50,000 XDC</span>
                     </li>
                     <li class="XDC-list__item">
                         <i class="tm-lock XDC-list__icon" />
@@ -31,7 +31,7 @@
                     <b-form-group
                         label="Vote"
                         label-for="apply-value"
-                        description="How much $XDC do you want to deposit?">
+                        description="How much XDC do you want to deposit?">
                         <b-input-group>
                             <number-input
                                 :class="getValidationClass('applyValue')"
@@ -47,7 +47,7 @@
                                 class="text-danger">Required field</span>
                             <span
                                 v-else-if="$v.applyValue.$dirty && !$v.applyValue.minValue"
-                                class="text-danger">Must be greater than 50,000 $XDC</span>
+                                class="text-danger">Must be greater than 50,000 XDC</span>
                         </b-input-group>
                     </b-form-group>
                     <b-form-group

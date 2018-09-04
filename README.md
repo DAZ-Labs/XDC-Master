@@ -22,7 +22,7 @@ Update `local.json` file to support your environment
 npm install
 truffle deploy --reset --network XDC
 ```
-Note: before deploying to XinFin testnet, make sure you have $XDC in the wallet. If not, get free at [https://faucet.XinFin.com](https://faucet.testnet.XinFin.com)
+Note: before deploying to XinFin testnet, make sure you have XDC in the wallet. If not, get free at [https://faucet.XinFin.com](https://faucet.testnet.XinFin.com)
 
 ## Run
 ```
