@@ -39,7 +39,14 @@
                 </div>
             </div>
         </div>
-        <div class="container">
+
+        <div
+            v-if="candidates.length <= 0"
+            class="XDC-loading"/>
+
+        <div
+            v-else
+            class="container">
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
@@ -56,7 +63,6 @@
                 :sort-by.sync="sortBy"
                 :sort-desc.sync="sortDesc"
                 :class="'XDC-table XDC-table--candidates ' + tableCssClass"
-                :show-empty="true"
                 empty-text="There are no candidates to show"
                 stacked="md" >
 
