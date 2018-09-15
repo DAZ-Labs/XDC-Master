@@ -690,3 +690,23 @@
         }
     }
 }
+
+.XDC-table--voterrewards {
+
+    @include media-breakpoint-up(lg) {
+        .text-truncate {
+            max-width: 90%;
+        }
+
+        thead tr,
+        tbody tr {
+            grid-template-columns: 5% 15% 40% 10% 15% 15%;
+        }
+    }
+
+    @include media-breakpoint-up(xl) {
+        .text-truncate {
+            max-width: 100%;
+        }
+    }
+}
