@@ -168,7 +168,7 @@ import {
     required
 } from 'vuelidate/lib/validators'
 import localhostUrl from '../../validators/localhostUrl.js'
-const HDWalletProvider = require('truffle-hdwallet-provider')
+const { HDWalletProvider } = require('../../helpers')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
 export default {
     name: 'App',
@@ -254,6 +254,7 @@ export default {
                     }
                     self.wh.push(it)
                 })
+                self.isReady = true
             } catch (e) {
                 console.log(e)
             }
@@ -327,7 +328,11 @@ export default {
             self.loading = true
             try {
                 console.log('==>', blockNumber, index)
-                let wd = await contract.withdraw(String(blockNumber), String(index), { from: account, gasPrice: 1 })
+                let wd = await contract.withdraw(String(blockNumber), String(index), {
+                    from: account,
+                    gasPrice: 2500,
+                    gas: 2000000
+                })
                 let toastMessage = wd.tx ? 'You have successfully withdrawed!'
                     : 'An error occurred while withdrawing, please try again'
                 self.$toasted.show(toastMessage)

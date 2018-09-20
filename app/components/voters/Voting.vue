@@ -12,7 +12,7 @@
                     <li class="XDC-list__item">
                         <i class="tm-XDC XDC-list__icon" />
                         <p class="XDC-list__text">
-                            <span><router-link :to="`/voter/${voter}`">{{ voter }}</router-link></span>
+                            <span><router-link :to="`/voter/${voter}`">{{ voter || 'Unknown' }}</router-link></span>
                             <span>Voter</span>
                         </p>
                     </li>
@@ -32,7 +32,8 @@
                     <b-form-group
                         label="Vote"
                         label-for="vote-value"
-                        description="How much XDC would you like to vote for this candidate?">
+                        description="How much XDC would you like to vote for this candidate?
+                        TX fee: 0.0000000000525 XDC">
                         <b-input-group>
                             <number-input
                                 :class="getValidationClass('voteValue')"
@@ -110,6 +111,19 @@ export default {
             let account = await self.getAccount()
             self.voter = account
         } catch (e) {
+            self.$toasted.show(`You need login your account before voting`,
+                {
+                    type : 'default',
+                    duration: 5000,
+                    action : [
+                        {
+                            text : 'Login',
+                            onClick : (e, toastObject) => {
+                                self.$router.push({ path: '/setting' })
+                            }
+                        }
+                    ]
+                })
             console.log(e)
         }
     },
@@ -148,7 +162,7 @@ export default {
                 let rs = await contract.vote(self.candidate, {
                     from: account,
                     value: new BigNumber(this.voteValue).multipliedBy(10 ** 18).toNumber(),
-                    gasPrice: 1,
+                    gasPrice: 2500,
                     gas: 1000000
                 })
 

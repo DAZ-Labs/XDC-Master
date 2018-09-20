@@ -22,7 +22,7 @@
                     :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
                     + (loading ? ' XDC-loading' : '')">
                     <h4 class=" color-white XDC-card__title XDC-card__title--big">Unvote
-                        <span class="XDC-card__subtitle">You will receive XDC after unvoting</span>
+                        <span class="XDC-card__subtitle">Your XDC will be locked in a duration after unvoting</span>
                     </h4>
                     <ul class="XDC-list list-unstyled">
                         <li class="XDC-list__item">
@@ -55,7 +55,7 @@
                         <b-form-group
                             label="Amount"
                             label-for="unvote-value"
-                            description="The amount of XDC to unvote">
+                            description="The amount of XDC to unvote. TX fee: 0.0000000000525 XDC">
                             <b-input-group>
                                 <number-input
                                     :class="getValidationClass('unvoteValue')"
@@ -181,7 +181,7 @@ export default {
                 let contract = await self.XDCValidator.deployed()
                 let rs = await contract.unvote(candidate, (parseFloat(value) * 10 ** 18), {
                     from: account,
-                    gasPrice: 1,
+                    gasPrice: 2500,
                     gas: 1000000
                 })
                 self.vote -= value

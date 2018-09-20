@@ -31,7 +31,7 @@
                     <b-form-group
                         label="Vote"
                         label-for="apply-value"
-                        description="How much XDC do you want to deposit?">
+                        description="How much XDC do you want to deposit? TX fee: 0.0000000000525 XDC">
                         <b-input-group>
                             <number-input
                                 :class="getValidationClass('applyValue')"
@@ -150,6 +150,19 @@ export default {
             let account = await self.getAccount()
             self.account = account
         } catch (e) {
+            self.$toasted.show(`You need login your account before voting`,
+                {
+                    type : 'default',
+                    duration: 5000,
+                    action : [
+                        {
+                            text : 'Login',
+                            onClick : (e, toastObject) => {
+                                self.$router.push({ path: '/setting' })
+                            }
+                        }
+                    ]
+                })
             console.log(e)
         }
     },
@@ -191,7 +204,7 @@ export default {
                 let rs = await contract.propose(coinbase, {
                     from : account,
                     value: parseFloat(value) * 10 ** 18,
-                    gasPrice: 1,
+                    gasPrice: 2500,
                     gas: 2000000
                 })
                 let toastMessage = rs.tx ? 'You have successfully applied!'

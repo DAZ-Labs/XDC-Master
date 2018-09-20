@@ -102,7 +102,6 @@
                         </p>
                     </div>
                     <div
-                        v-if="isReady"
                         class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 XDC-info">
                         <p class="XDC-info__title">
                             <i class="tm-dot XDC-info__icon" />
@@ -129,7 +128,9 @@
                             {{ candidate.monitor }}
                         </p>
                     </div>
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 m-xl-0 XDC-info">
+                    <div
+                        v-if="isReady"
+                        class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 m-xl-0 XDC-info">
                         <p class="XDC-info__title">
                             <i class="tm-dot XDC-info__icon" />
                             <span class="XDC-info__text">Balance</span>
@@ -368,6 +369,15 @@
                         <span>View on XDCScan</span>
                     </a>
                 </template>
+
+                <template
+                    slot="createdAt"
+                    slot-scope="data">
+                    <span :id="`timestamp__${data.index}`">{{ data.item.createdAt }}</span>
+                    <b-tooltip :target="`timestamp__${data.index}`">
+                        {{ data.item.dateTooltip }}
+                    </b-tooltip>
+                </template>
             </b-table>
 
             <b-pagination
@@ -549,6 +559,11 @@ export default {
                     sortable: false
                 },
                 {
+                    key: 'createdAt',
+                    label: 'Age',
+                    sortable: false
+                },
+                {
                     key: 'action',
                     label: '',
                     sortable: false
@@ -608,7 +623,7 @@ export default {
                     sortable: false
                 },
                 {
-                    key: 'tx',
+                    key: 'action',
                     label: '',
                     sortable: false
                 }
@@ -721,7 +736,9 @@ export default {
                 })
                 self.signs.push({
                     tx: stx[0].tx,
-                    blockNumber: bs.blockNumber
+                    blockNumber: bs.blockNumber,
+                    createdAt: moment(bs.createdAt).fromNow(),
+                    dateTooltip: moment(bs.createdAt).format('lll')
                 })
             })
 
