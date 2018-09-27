@@ -30,11 +30,6 @@ router.get('/', async function (req, res, next) {
         }
 
         let map = candidates.map(async c => {
-            let bs = await db.BlockSigner.findOne({
-                'signers.signer': c.candidate
-            }).sort({ _id: 'desc' })
-            c.latestSignedBlock = (bs || {}).blockNumber || 0
-
             // is masternode
             c.isMasternode = set.has(c.candidate)
             return c
@@ -55,9 +50,6 @@ router.get('/:candidate', async function (req, res, next) {
         candidate: address
     }) || {})
 
-    candidate.totalSignedBlocks = await db.BlockSigner.countDocuments({
-        'signers.signer': address
-    })
     return res.json(candidate)
 })
 
@@ -91,13 +83,41 @@ router.post('/apply', async function (req, res, next) {
                 : new PrivateKeyProvider(key, network)
         Validator.setProvider(walletProvider)
         let validator = await Validator.deployed()
-        await validator.propose(req.query.coinbase, (req.query.nodeId || ''), {
+        await validator.propose(req.query.coinbase, {
             from : walletProvider.address,
-            value: 50000 * 10 ** 18
+            value: 50000 * 10 ** 18,
+            gas: 2000000,
+            gasPrice: 2500
         })
         return res.json({ status: 'OK' })
     } catch (e) {
         return res.json({ status: 'NOK' })
+    }
+})
+
+router.get('/:candidate/isMasternode', async function (req, res, next) {
+    try {
+        let latestSigners = await db.Signer.findOne({}).sort({ _id: 'desc' })
+        const signers = latestSigners.signers
+        const set = new Set()
+        for (let i = 0; i < signers.length; i++) {
+            set.add(signers[i])
+        }
+        let isMasternode = (set.has(req.params.candidate || '')) ? 1 : 0
+
+        return res.json(isMasternode)
+    } catch (e) {
+        return next(e)
+    }
+})
+
+router.get('/:candidate/isCandidate', async function (req, res, next) {
+    try {
+        let validator = await Validator.deployed()
+        let isCandidate = await validator.isCandidate.call(req.params.candidate)
+        return res.json((isCandidate) ? 1 : 0)
+    } catch (e) {
+        return next(e)
     }
 })
 
