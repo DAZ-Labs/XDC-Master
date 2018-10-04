@@ -109,7 +109,7 @@
                 :class="'col-12 col-md-8 col-lg-7 XDC-card XDC-card--lighter p-0'
                 + (loading ? ' XDC-loading' : '')">
                 <h4 class="h4 color-white XDC-card__title XDC-card__title--big">
-                    Withdraws</h4>
+                    Withdrawals</h4>
                 <ul
                     v-for="(w, k, index) in withdraws"
                     :key="index"

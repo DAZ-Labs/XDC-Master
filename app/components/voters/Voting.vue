@@ -1,73 +1,154 @@
 <template>
     <div class="container">
-        <b-row
-            align-v="center"
-            align-h="center"
-            class="m-0">
-            <b-card
-                :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
-                + (loading ? ' XDC-loading' : '')">
-                <h4 class=" color-white XDC-card__title XDC-card__title--big">Vote</h4>
-                <ul class="XDC-list list-unstyled">
-                    <li class="XDC-list__item">
-                        <i class="tm-XDC XDC-list__icon" />
-                        <p class="XDC-list__text">
-                            <span><router-link :to="`/voter/${voter}`">{{ voter || 'Unknown' }}</router-link></span>
-                            <span>Voter</span>
-                        </p>
-                    </li>
-                    <li class="XDC-list__item">
-                        <i class="tm-profile XDC-list__icon" />
-                        <p class="XDC-list__text">
-                            <span><router-link :to="`/candidate/${candidate}`">{{ candidate }}</router-link></span>
-                            <span>Candidate</span>
-                        </p>
-                    </li>
-                </ul>
+        <div
+            v-if="step === 1">
+            <b-row
+                align-v="center"
+                align-h="center"
+                class="m-0">
+                <b-card
+                    :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
+                    + (loading ? ' XDC-loading' : '')">
+                    <h4 class=" color-white XDC-card__title XDC-card__title--big">Vote</h4>
+                    <ul class="XDC-list list-unstyled">
+                        <li class="XDC-list__item">
+                            <i class="tm-XDC XDC-list__icon" />
+                            <p class="XDC-list__text">
+                                <span><router-link :to="`/voter/${voter}`">{{ voter }}</router-link></span>
+                                <span>Voter</span>
+                            </p>
+                        </li>
+                        <li class="XDC-list__item">
+                            <i class="tm-profile XDC-list__icon" />
+                            <p class="XDC-list__text">
+                                <span><router-link :to="`/candidate/${candidate}`">{{ candidate }}</router-link></span>
+                                <span>Candidate</span>
+                            </p>
+                        </li>
+                    </ul>
 
-                <b-form
-                    class="XDC-form XDC-form--vote"
-                    novalidate
-                    @submit.prevent="validate()">
-                    <b-form-group
-                        label="Vote"
-                        label-for="vote-value"
-                        description="How much XDC would you like to vote for this candidate?
-                        TX fee: 0.0000000000525 XDC">
-                        <b-input-group>
-                            <number-input
-                                :class="getValidationClass('voteValue')"
-                                :min="10"
-                                :step="1"
-                                v-model="voteValue"
-                                name="vote-value"/>
-                            <b-input-group-append>
-                                <i class="tm-XDC" />
-                            </b-input-group-append>
-                            <span
-                                v-if="$v.voteValue.$dirty && !$v.voteValue.required"
-                                class="text-danger">Required field</span>
-                            <span
-                                v-else-if="$v.voteValue.$dirty && !$v.voteValue.minValue"
-                                class="text-danger">Must be greater than 10 XDC</span>
-                        </b-input-group>
-                    </b-form-group>
-                    <div class="buttons text-right">
-                        <b-button
-                            type="button"
-                            variant="secondary"
-                            @click="$router.go(-1)">Cancel</b-button>
-                        <b-button
-                            type="submit"
-                            variant="primary">Submit</b-button>
+                    <b-form
+                        class="XDC-form XDC-form--vote"
+                        novalidate
+                        @submit.prevent="validate()">
+                        <b-form-group
+                            label="Vote"
+                            label-for="vote-value"
+                            description="How much XDC would you like to vote for this candidate?
+                            TX fee: 0.0000000000525 XDC">
+                            <b-input-group>
+                                <number-input
+                                    :class="getValidationClass('voteValue')"
+                                    :min="10"
+                                    :step="1"
+                                    v-model="voteValue"
+                                    name="vote-value"/>
+                                <b-input-group-append>
+                                    <i class="tm-XDC" />
+                                </b-input-group-append>
+                                <span
+                                    v-if="$v.voteValue.$dirty && !$v.voteValue.required"
+                                    class="text-danger">Required field</span>
+                                <span
+                                    v-else-if="$v.voteValue.$dirty && !$v.voteValue.minValue"
+                                    class="text-danger">Must be greater than 10 XDC</span>
+                            </b-input-group>
+                        </b-form-group>
+                        <div class="buttons text-right">
+                            <b-button
+                                type="button"
+                                variant="secondary"
+                                @click="$router.go(-1)">Cancel</b-button>
+                            <b-button
+                                type="submit"
+                                variant="primary">Next</b-button>
+                        </div>
+                    </b-form>
+                </b-card>
+            </b-row>
+        </div>
+        <div
+            v-if="step === 2">
+            <b-row
+                align-v="center"
+                align-h="center">
+                <b-card
+                    :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
+                    + (loading ? ' XDC-loading' : '')">
+                    <h4 class=" color-white XDC-card__title XDC-card__title--big">Vote</h4>
+                    <!-- <div>
+                        <strong>Using XDC wallet to execute the action
+                        </strong>
+                    </div> -->
+                    <div
+                        style="margin-top: 20px">
+                        <div
+                            class="wrapper">
+                            <div
+                                id="one">
+                                <label>
+                                    <b>Voting information</b>
+                                </label>
+                                <label style="margin-top: 5px">
+                                    <textarea
+                                        :value="message"
+                                        class="sign-message"
+                                        type="text"
+                                        disabled
+                                        cols="100"
+                                        rows="4"
+                                        style="width: 100%"/>
+                                </label>
+                            </div>
+                            <div>
+                                <label>
+                                    <b>Vote by metamask</b>
+                                </label>
+                                <div
+                                    class="pull-right"
+                                    style="margin-right: -7px; float: right">
+                                    <button
+                                        class="btn btn-primary"
+                                        variant="primary"
+                                        @click="vote">Submit</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label>
+                                    <b>Vote by XDC wallet</b>
+                                </label>
+                                <div
+                                    style="text-align: center; margin-top: 10px">
+                                    <vue-qrcode
+                                        :value="qrCode"
+                                        :options="{size: 250 }"
+                                        class="img-fluid text-center text-lg-right"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="buttons text-right">
+                                <b-button
+                                    type="button"
+                                    variant="secondary"
+                                    @click="backStep">Back</b-button>
+                                    <!-- <b-button
+                                    type="submit"
+                                    variant="primary">Submit</b-button> -->
+                            </div>
+                            <!-- <button
+                                class="btn btn-primary"
+                                @click.prevent="nextStep">Next</button> -->
+                        </div>
                     </div>
-                </b-form>
-            </b-card>
-        </b-row>
+                </b-card>
+            </b-row>
+        </div>
     </div>
 </template>
 
 <script>
+import axios from 'axios'
 import { validationMixin } from 'vuelidate'
 import {
     required,
@@ -75,20 +156,25 @@ import {
 } from 'vuelidate/lib/validators'
 import NumberInput from '../NumberInput.vue'
 import BigNumber from 'bignumber.js'
+import VueQrcode from '@chenfengyuan/vue-qrcode'
 
 export default {
     name: 'App',
     components: {
-        NumberInput
+        NumberInput,
+        VueQrcode
     },
     mixins: [validationMixin],
     data () {
         return {
             isReady: !!this.web3,
-            voter: '',
+            voter: 'Unknown',
             candidate: this.$route.params.candidate,
             voteValue: 10,
-            loading: false
+            loading: false,
+            step: 1,
+            message: '',
+            qrCode: ''
         }
     },
     validations: {
@@ -109,7 +195,9 @@ export default {
                 throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
             }
             let account = await self.getAccount()
-            self.voter = account
+            if (account) {
+                self.voter = account
+            }
         } catch (e) {
             self.$toasted.show(`You need login your account before voting`,
                 {
@@ -143,7 +231,7 @@ export default {
             this.$v.$touch()
 
             if (!this.$v.$invalid) {
-                this.vote()
+                this.nextStep()
             }
         },
         vote: async function () {
@@ -183,6 +271,30 @@ export default {
                 })
                 console.log(e)
             }
+        },
+        onSuccess () {
+            this.$toasted.show('Copied')
+        },
+        async nextStep () {
+            const self = this
+            const data = {
+                voter: self.voter,
+                candidate: self.candidate,
+                amount: self.voteValue
+            }
+            // call api to generate qr code
+            const generatedMess = await axios.post(`/api/voters/generateQR`, data)
+
+            self.message = generatedMess.data.message
+            self.qrCode = encodeURI(
+                'XinFin:vote?amount=' + self.voteValue + '&' + 'candidate=' + self.candidate +
+                '&name=' + generatedMess.data.candidateName +
+                '&submitURL=' + generatedMess.data.url + generatedMess.data.id
+            )
+            self.step++
+        },
+        backStep () {
+            this.step--
         }
     }
 }
