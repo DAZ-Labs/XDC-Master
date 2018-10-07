@@ -4,7 +4,6 @@ const axios = require('axios')
 const router = express.Router()
 const db = require('../models/mongodb')
 const { Validator } = require('../models/blockchain/validator')
-const uuidv4 = require('uuid/v4')
 const config = require('config')
 
 router.get('/:voter/candidates', async function (req, res, next) {
@@ -32,34 +31,6 @@ router.get('/:voter/rewards', async function (req, res, next) {
         res.json(rewards.data)
     } catch (e) {
         return next(e)
-    }
-})
-
-router.post('/generateQR', async (req, res, next) => {
-    try {
-        const voter = req.body.voter
-        const amount = req.body.amount
-        const candidate = (req.body.candidate || '').toLowerCase()
-        const message = voter + ' vote ' + amount + ' XDC for candidate ' + candidate
-        let validator = await Validator.deployed()
-        let candidateInfo = (await db.Candidate.findOne({
-            smartContractAddress: validator.address,
-            candidate: candidate
-        }) || {})
-
-        res.send({
-            candidateName: candidateInfo.name ? candidateInfo.name : 'Anonymous Candidate',
-            message,
-            url: 'https://example.com/',
-            id: uuidv4()
-        })
-    } catch (e) {
-        console.log(e)
-        res.send({
-            error: {
-                message: e
-            }
-        })
     }
 })
 

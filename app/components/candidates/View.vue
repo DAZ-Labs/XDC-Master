@@ -309,12 +309,10 @@
                 </div>
             </div>
             <b-table
-                :items="sortedTransactions"
+                :items="transactions"
                 :fields="txFields"
                 :current-page="txCurrentPage"
                 :per-page="txPerPage"
-                :sort-by.sync="txSortBy"
-                :sort-desc.sync="txSortDesc"
                 :show-empty="true"
                 :class="`XDC-table XDC-table--transactions${loading ? ' loading' : ''}`"
                 empty-text="There are no transactions to show"
@@ -440,7 +438,7 @@ export default {
                 }
             ],
             mnRewardsCurrentPage: 1,
-            mnRewardsSortBy: 'checkpoint',
+            mnRewardsSortBy: 'epoch',
             mnRewardsPerPage: 10,
             mnRewardsSortDesc: true,
             mnRewardsTotalRows: 0,
@@ -480,7 +478,7 @@ export default {
                 {
                     key: 'createdAt',
                     label: 'Age',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'action',
@@ -501,11 +499,6 @@ export default {
     computed: {
         sortedVoters: function () {
             return this.voters.slice().sort(function (a, b) {
-                return b.cap - a.cap
-            })
-        },
-        sortedTransactions: function () {
-            return this.transactions.slice().sort(function (a, b) {
                 return b.cap - a.cap
             })
         }
@@ -607,10 +600,10 @@ export default {
             let mnRewards = await axios.get(`/api/candidates/${address}/${self.candidate.owner}/getRewards`)
 
             mnRewards.data.map((r) => {
-                    self.mnRewards.push({
+                self.mnRewards.push({
                     epoch: r.epoch,
                     signNumber: r.signNumber,
-                    reward: new BigNumber(r.reward).div(1e+18).toFixed(8),
+                    reward: new BigNumber(r.reward).div(1e+18).toFixed(6),
                     createdAt: moment(r.createdAt).fromNow(),
                     dateTooltip: moment(r.createdAt).format('lll')
                 })

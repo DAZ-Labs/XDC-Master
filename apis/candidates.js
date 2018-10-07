@@ -24,7 +24,7 @@ router.get('/', async function (req, res, next) {
         let candidates = data[0]
         let latestSigners = data[1]
 
-        const signers = latestSigners.signers
+        const signers = (latestSigners || {}).signers || []
         const set = new Set()
         for (let i = 0; i < signers.length; i++) {
             set.add(signers[i])
@@ -90,6 +90,15 @@ router.post('/apply', async function (req, res, next) {
             gas: 2000000,
             gasPrice: 2500
         })
+        if (req.query.name) {
+            await db.Candidate.updateOne({
+                candidate: req.query.coinbase.toLowerCase()
+            }, {
+                $set: {
+                    name: req.query.name
+                }
+            })
+        }
         return res.json({ status: 'OK' })
     } catch (e) {
         return res.json({ status: 'NOK' })
@@ -121,6 +130,7 @@ router.get('/:candidate/isCandidate', async function (req, res, next) {
         return next(e)
     }
 })
+
 // Get masternode rewards
 router.get('/:candidate/:owner/getRewards', async function (req, res, next) {
     try {
