@@ -20,7 +20,6 @@
   "explorerUrl": "http://localhost:3003",
   "grafanaUrl": "http://localhost:8000",
   "XDCscanUrl": "https://scan.testnet.XinFin.com",
-  "baseUrl": "https://master.testnet.XinFin.com/",
   "grafanaApiKey": "eyJrIjoiRE1TQ3lyZ1U2ZmJkdURNRkNVNjU0RnRiakh3UElhQ3IiLCJuIjoiVG9tb21hc3RlciIsImlkIjoxfQ==",
   "redis": {
     "host": "redis",

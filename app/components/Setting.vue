@@ -214,37 +214,47 @@ export default {
         self.chainConfig = self.config.blockchain
 
         self.setupAccount = async () => {
+            let contract
             try {
                 if (!self.web3 && self.NetworkProvider === 'metamask') {
                     throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
                 }
+
+                try {
+                    contract = await self.XDCValidator.deployed()
+                } catch (error) {
+                    throw Error('Make sure you choose correct XinFin network.')
+                }
+
                 let account = await self.getAccount()
                 self.address = account
+                self.account = account
                 self.web3.eth.getBalance(self.address, function (a, b) {
                     self.balance = new BigNumber(b).div(10 ** 18).toFormat()
                     if (a) {
                         console.log('got an error', a)
                     }
                 })
-                let contract = await self.XDCValidator.deployed()
-                let blks = await contract.getWithdrawBlockNumbers.call({ from: account })
+                if (contract) {
+                    let blks = await contract.getWithdrawBlockNumbers.call({ from: account })
 
-                await Promise.all(blks.map(async (it, index) => {
-                    let blk = new BigNumber(it).toString()
-                    if (blk !== '0') {
-                        self.aw = true
-                    }
-                    let wd = {
-                        blockNumber: blk
-                    }
-                    wd.cap = new BigNumber(
-                        await contract.getWithdrawCap.call(blk, { from: account })
-                    ).div(10 ** 18).toFormat()
-                    wd.estimatedTime = await self.getSecondsToHms(
-                        (wd.blockNumber - self.chainConfig.blockNumber)
-                    )
-                    self.withdraws[index] = wd
-                }))
+                    await Promise.all(blks.map(async (it, index) => {
+                        let blk = new BigNumber(it).toString()
+                        if (blk !== '0') {
+                            self.aw = true
+                        }
+                        let wd = {
+                            blockNumber: blk
+                        }
+                        wd.cap = new BigNumber(
+                            await contract.getWithdrawCap.call(blk, { from: account })
+                        ).div(10 ** 18).toFormat()
+                        wd.estimatedTime = await self.getSecondsToHms(
+                            (wd.blockNumber - self.chainConfig.blockNumber)
+                        )
+                        self.withdraws[index] = wd
+                    }))
+                }
 
                 let wh = await axios.get(`/api/owners/${self.address}/withdraws`)
                 self.wh = []
@@ -256,8 +266,12 @@ export default {
                     self.wh.push(it)
                 })
                 self.isReady = true
+                self.$toasted.show('Network Provider was changed successfully')
             } catch (e) {
                 console.log(e)
+                self.$toasted.show(e, {
+                    type : 'error'
+                })
             }
         }
         await self.setupAccount()
@@ -311,7 +325,6 @@ export default {
 
                 setTimeout(async () => {
                     self.loading = false
-                    self.$toasted.show('Network Provider was changed successfully')
                     await self.setupAccount()
                 }, 2000)
             } catch (e) {
