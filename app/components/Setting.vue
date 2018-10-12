@@ -7,7 +7,7 @@
             <b-card
                 :class="'col-12 col-md-8 col-lg-7 XDC-card XDC-card--lighter p-0'
                 + (loading ? ' XDC-loading' : '')">
-                <h4 class="color-white XDC-card__title XDC-card__title--big">Settings</h4>
+                <h4 class="color-white XDC-card__title XDC-card__title--big">Login</h4>
                 <b-form
                     class="XDC-form XDC-form--setting"
                     novalidate
