@@ -26,6 +26,7 @@ import HighchartsVue from 'highcharts-vue'
 import Highcharts from 'highcharts'
 import stockInit from 'highcharts/modules/stock'
 import VueClipboards from 'vue-clipboards'
+import Vuex from 'vuex'
 
 Vue.use(BootstrapVue)
 Vue.use(VueClipboards)
@@ -87,7 +88,7 @@ Vue.prototype.setupProvider = function (provider, wjs) {
 }
 
 Vue.prototype.formatNumber = function (number) {
-    let seps = (number || 0).toString().split('.')
+    let seps = number.toString().split('.')
     seps[0] = seps[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
     return seps.join('.')
@@ -162,7 +163,7 @@ const router = new VueRouter({
             path: '/resign/:address', component: CandidateResign
         },
         {
-            path: '/withdraw', component: CandidateWithdraw, name: 'CandidateWithdraw'
+            path: '/withdraw', component: CandidateWithdraw
         },
         {
             path: '/withdraw/:address', component: CandidateWithdraw
@@ -208,8 +209,18 @@ getConfig().then((config) => {
     throw e
 })
 
+Vue.use(Vuex)
+
+const store = new Vuex.Store({
+    state: {
+        walletLoggedIn: null,
+        web3: null
+    }
+})
+
 new Vue({ // eslint-disable-line no-new
     el: '#app',
+    store,
     router: router,
     components: { App },
     template: '<App/>'

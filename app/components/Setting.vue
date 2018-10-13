@@ -19,7 +19,11 @@
                         <b-input-group>
                             <b-form-select
                                 id="provider"
-                                v-model="provider">
+                                v-model="provider"
+                                @change="onChangeSelect">
+                                <option
+                                    value="wallet"
+                                    selected>XDCWallet</option>
                                 <option value="rpc">PrivateKey/MNEMONIC</option>
                                 <option
                                     v-if="!isElectron"
@@ -47,7 +51,7 @@
                             class="text-danger">Wrong URL format</span>
                     </b-form-group>
                     <b-form-group
-                        v-if="provider !== 'metamask'"
+                        v-if="provider === 'rpc'"
                         class="mb-4"
                         label="Privatekey/MNEMONIC"
                         label-for="mnemonic">
@@ -55,6 +59,19 @@
                             :class="getValidationClass('mnemonic')"
                             v-model="mnemonic"
                             type="text" />
+                        <span
+                            v-if="$v.mnemonic.$dirty && !$v.mnemonic.required"
+                            class="text-danger">Required field</span>
+                    </b-form-group>
+
+                    <b-form-group
+                        v-if="provider === 'wallet' && !$store.state.walletLoggedIn && !address"
+                        class="mb-4"
+                        style="text-align: center">
+                        <vue-qrcode
+                            :options="{size: 250 }"
+                            :value="qrCode"
+                            class="img-fluid text-center text-lg-right"/>
                         <span
                             v-if="$v.mnemonic.$dirty && !$v.mnemonic.required"
                             class="text-danger">Required field</span>
@@ -71,13 +88,14 @@
 
                     <div class="buttons text-right">
                         <b-button
+                            v-if="provider !== 'wallet'"
                             type="submit"
                             variant="primary">Save</b-button>
                     </div>
                 </b-form>
             </b-card>
             <b-card
-                v-if="isReady"
+                v-if="address"
                 :class="'col-12 col-md-8 col-lg-7 XDC-card XDC-card--lighter p-0'
                 + (loading ? ' XDC-loading' : '')">
                 <h4 class="h4 color-white XDC-card__title XDC-card__title--big">
@@ -132,14 +150,10 @@
                             <span class="text-muted">{{ getCurrencySymbol() }}</span></p>
                             <span>Capacity</span>
                         </div>
-                        <!-- <b-button
-                            :disabled="w.blockNumber > chainConfig.blockNumber"
-                            variant="primary"
-                            @click="withdraw(w.blockNumber, k)">Withdraw</b-button> -->
                         <b-button
                             :disabled="w.blockNumber > chainConfig.blockNumber"
                             variant="primary"
-                            @click="changeView(w, k)">Withdraw</b-button>
+                            @click="withdraw(w.blockNumber, k)">Withdraw</b-button>
                     </li>
                 </ul>
                 <ul
@@ -173,17 +187,21 @@ import {
     required
 } from 'vuelidate/lib/validators'
 import localhostUrl from '../../validators/localhostUrl.js'
+import VueQrcode from '@chenfengyuan/vue-qrcode'
 const { HDWalletProvider } = require('../../helpers')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
 export default {
     name: 'App',
+    components: {
+        VueQrcode
+    },
     mixins: [validationMixin],
     data () {
         return {
             isReady: !!this.web3,
             mnemonic: '',
             config: {},
-            provider: 'rpc',
+            provider: 'wallet',
             address: '',
             withdraws: [],
             wh: [],
@@ -193,9 +211,13 @@ export default {
             networks: {
                 // mainnet: 'https://core.XinFin.com',
                 rpc: 'https://testnet.XinFin.com',
-                custom: 'http://localhost:8545'
+                custom: 'http://localhost:8545',
+                wallet: 'https://testnet.XinFin.com'
             },
-            loading: false
+            loading: false,
+            qrCode: 'text',
+            id: '',
+            interval: ''
         }
     },
     validations: {
@@ -212,8 +234,13 @@ export default {
     computed: {},
     watch: {},
     updated () {},
+    beforeDestroy () {
+        if (this.interval) {
+            clearInterval(this.interval)
+        }
+    },
     created: async function () {
-        this.provider = this.NetworkProvider || 'rpc'
+        // this.provider = this.NetworkProvider || 'rpc'
         let self = this
         self.config = await self.appConfig()
         self.chainConfig = self.config.blockchain || {}
@@ -232,14 +259,14 @@ export default {
                     throw Error('Make sure you choose correct XinFin network.')
                 }
 
-                let account = await self.getAccount()
+                let account = this.$store.state.walletLoggedIn
+                    ? this.$store.state.walletLoggedIn : await self.getAccount()
 
                 if (!account) {
                     return false
                 }
 
                 self.address = account
-                self.account = account
                 self.web3.eth.getBalance(self.address, function (a, b) {
                     self.balance = new BigNumber(b).div(10 ** 18).toFormat()
                     if (a) {
@@ -283,6 +310,14 @@ export default {
                 self.$toasted.show(e, {
                     type : 'error'
                 })
+            }
+        }
+        if (self.provider === 'wallet' && !self.$store.state.walletLoggedIn) {
+            const hasQRCOde = self.loginByQRCode()
+            if (await hasQRCOde) {
+                self.interval = setInterval(async () => {
+                    await this.getLoginResult()
+                }, 3000)
             }
         }
         await self.setupAccount()
@@ -331,6 +366,7 @@ export default {
 
                     wjs = new Web3(walletProvider)
                 }
+                console.log(wjs)
 
                 await self.setupProvider(this.provider, wjs)
 
@@ -344,15 +380,124 @@ export default {
                 console.log(e)
             }
         },
-        changeView (w, k) {
-            this.$router.push({ name: 'CandidateWithdraw',
-                params: {
-                    address: this.address,
-                    blockNumber: w.blockNumber,
-                    capacity: w.cap,
-                    index: k
+        withdraw: async function (blockNumber, index) {
+            let self = this
+            let contract = await self.XDCValidator.deployed()
+            let account = await self.getAccount()
+            self.loading = true
+            try {
+                let wd = await contract.withdraw(String(blockNumber), String(index), {
+                    from: account,
+                    gasPrice: 2500,
+                    gas: 2000000
+                })
+                let toastMessage = wd.tx ? 'You have successfully withdrawed!'
+                    : 'An error occurred while withdrawing, please try again'
+                self.$toasted.show(toastMessage)
+
+                setTimeout(() => {
+                    self.loading = false
+                    if (wd.tx) {
+                        self.$router.push({ path: `/setting` })
+                    }
+                }, 2000)
+            } catch (e) {
+                self.loading = false
+            }
+        },
+        async loginByQRCode () {
+            // generate qr code
+            const { data } = await axios.get('/api/config/generateLoginQR')
+            this.id = data.id
+            this.qrCode = encodeURI(
+                'XinFin:login?message=' + data.message +
+                '&submitURL=' + data.url + data.id
+            )
+            return true
+        },
+        async getLoginResult () {
+            // calling api every 2 seconds
+            const { data } = await axios.post('/api/config/getLoginResult', { messId: this.id })
+
+            if (!data.error && data) {
+                this.loading = true
+                if (self.interval) {
+                    clearInterval(self.interval)
+                }
+                await this.getAccountInfo(data.user)
+            }
+        },
+        onChangeSelect (event) {
+            if (event === 'wallet') {
+                this.interval = setInterval(async () => {
+                    await this.getLoginResult()
+                }, 3000)
+            } else {
+                if (this.interval) {
+                    clearInterval(this.interval)
+                }
+            }
+        },
+        async getAccountInfo (account) {
+            const self = this
+            let contract
+            self.$store.state.web3 = await new Web3(new Web3.providers.HttpProvider(self.networks[self.provider]))
+            await self.setupProvider(this.provider, false)
+            try {
+                contract = await self.XDCValidator.deployed()
+            } catch (error) {
+                if (self.interval) {
+                    clearInterval(self.interval)
+                }
+                self.$toasted.show('Make sure you choose correct XinFin network.', {
+                    type : 'error'
+                })
+            }
+
+            self.address = account
+            self.$store.state.walletLoggedIn = account
+            self.web3.eth.getBalance(self.address, function (a, b) {
+                self.balance = new BigNumber(b).div(10 ** 18).toFormat()
+                if (a) {
+                    console.log('got an error', a)
                 }
             })
+            if (contract) {
+                let blks = await contract.getWithdrawBlockNumbers.call({ from: account })
+
+                await Promise.all(blks.map(async (it, index) => {
+                    let blk = new BigNumber(it).toString()
+                    if (blk !== '0') {
+                        self.aw = true
+                    }
+                    let wd = {
+                        blockNumber: blk
+                    }
+                    wd.cap = new BigNumber(
+                        await contract.getWithdrawCap.call(blk, { from: account })
+                    ).div(10 ** 18).toFormat()
+                    wd.estimatedTime = await self.getSecondsToHms(
+                        (wd.blockNumber - self.chainConfig.blockNumber)
+                    )
+                    self.withdraws[index] = wd
+                }))
+            }
+
+            let wh = await axios.get(`/api/owners/${self.address}/withdraws`)
+            self.wh = []
+            wh.data.forEach(w => {
+                let it = {
+                    cap: new BigNumber(w.capacity).div(10 ** 18).toFormat(),
+                    tx: w.tx
+                }
+                self.wh.push(it)
+            })
+            self.isReady = true
+            self.loading = false
+            if (this.interval) {
+                clearInterval(this.interval)
+            }
+            self.$toasted.show('Network Provider was changed successfully')
         }
     }
 }

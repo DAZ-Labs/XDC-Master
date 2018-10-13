@@ -8,8 +8,6 @@
 This is Governance Dapp for XinFin. Full-Node can apply to become a candidate for masternode. Coin Holder can vote for candidates to become masternodes. See the detail from technical Whitepaper: https://docs.XinFin.com/whitepaper/](https://docs.XinFin.com/whitepaper/)
 
 ## Requirements
-- NodeJS (If you get EACCES permission issue, please see: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally)
-- Redis
 - MongoDB
 - Truffle Framework
 
@@ -18,38 +16,6 @@ This is Governance Dapp for XinFin. Full-Node can apply to become a candidate fo
 cp config/default.json config/local.json
 ```
 Update `local.json` file to support your environment
-- Update mnemonic
-- Update mongodb configuration:
-    - For docker:
-    `  "db": {
-    "uri": "mongodb://mongodb:27017/governance"
-    },
-  `
-    - For localhost: 
-    `
-    "db": {
-    "uri": "mongodb://localhost:27017/governance"
-  },
-  `
-  - Update redis configuration:
-    - For docker:
-    `
-    "redis": {
-    "host": "redis",
-    "port": 6379,
-    "password": null,
-    "prefix": "XDCmaster"
-    },
-    `
-    - For localhost:
-    `
-    "redis": {
-    "host": "localhost",
-    "port": 6379,
-    "password": null,
-    "prefix": "XDCmaster"
-    },
-  `
 
 ## Install
 ```
@@ -57,12 +23,9 @@ npm install
 truffle deploy --reset --network XDC
 cp abis/*json build/contracts/
 ```
-Note: before deploying to XinFin testnet, make sure you have XDC in the wallet. If not, get free at (http://faucet_testnet.xinfin.network)
+Note: before deploying to XinFin testnet, make sure you have XDC in the wallet. If not, get free at (http://faucet_testnet.xinfin.network/)
 
 ## Run
-- Start mongodb
-- Start Redis
-- Start XDCMaster
 ```
 npm run dev
 ```

@@ -1,8 +1,15 @@
 'use strict'
 
-const ValidatorABI = require('../../abis/XDCValidator')
-const web3 = require('./web3')
-const config = require('config')
-const validator = new web3.eth.Contract(ValidatorABI.abi, config.get('blockchain.validatorAddress'))
+const contract = require('truffle-contract')
+const ValidatorArtifacts = require('../../build/contracts/XDCValidator.json')
+const chain = require('./chain')
+const Validator = contract(ValidatorArtifacts)
 
-module.exports = validator
+const provider = chain.currentProvider
+
+Validator.setProvider(provider)
+
+module.exports = {
+    chain,
+    Validator
+}
