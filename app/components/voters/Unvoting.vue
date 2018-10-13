@@ -171,10 +171,6 @@
                                         type="button"
                                         variant="secondary"
                                         @click="backStep">Back</b-button>
-                                    <b-button
-                                        type="button"
-                                        variant="secondary"
-                                        @click="createRawTx">create</b-button>
                                     <button
                                         v-if="!checked"
                                         class="btn btn-primary"
@@ -321,7 +317,6 @@ export default {
 
             self.message = generatedMess.data.message
             self.id = generatedMess.data.id
-            console.log(generatedMess.data.url + generatedMess.data.id)
 
             self.qrCode = encodeURI(
                 'XinFin:unvote?amount=' + self.unvoteValue + '&' + 'candidate=' + self.candidate +
@@ -360,7 +355,7 @@ export default {
                 body.id = self.id
             }
             body.voter = self.voter
-            let { data } = await axios.post('/api/voters/getVotingResult', body)
+            let { data } = await axios.post('/api/voters/getScanningResult', body)
 
             if (!data.error) {
                 self.loading = true
@@ -381,16 +376,6 @@ export default {
                     }
                 }, 2000)
             }
-        },
-        async createRawTx () {
-            const rawTx = await axios.post(
-                '/api/voters/createRawTx',
-                {
-                    voteValue: this.voteValue,
-                    candidate: this.candidate
-                }
-            )
-            console.log(rawTx.data)
         }
     }
 }
