@@ -20,15 +20,14 @@
                             <b-form-select
                                 id="provider"
                                 v-model="provider">
+                                <option value="rpc">PrivateKey/MNEMONIC</option>
                                 <option
                                     v-if="!isElectron"
                                     value="metamask">Metamask</option>
-                                <option value="testnet">XinFin Testnet</option>
-                                <option value="custom">Custom Network</option>
                             </b-form-select>
                             <small
-                                v-if="provider === 'testnet'"
-                                class="form-text text-muted">Using node at https://testnet.XinFin.com.</small>
+                                v-if="provider === 'rpc'"
+                                class="form-text text-muted">Using node at {{ chainConfig.rpc }}.</small>
                         </b-input-group>
                     </b-form-group>
                     <b-form-group
@@ -50,7 +49,7 @@
                     <b-form-group
                         v-if="provider !== 'metamask'"
                         class="mb-4"
-                        label="MNEMONIC/PrivateKey"
+                        label="Privatekey/MNEMONIC"
                         label-for="mnemonic">
                         <b-form-input
                             :class="getValidationClass('mnemonic')"
@@ -79,7 +78,8 @@
             </b-card>
             <b-card
                 v-if="isReady"
-                class="col-12 col-md-8 col-lg-7 XDC-card XDC-card--lighter p-0">
+                :class="'col-12 col-md-8 col-lg-7 XDC-card XDC-card--lighter p-0'
+                + (loading ? ' XDC-loading' : '')">
                 <h4 class="h4 color-white XDC-card__title XDC-card__title--big">
                     Account Information</h4>
                 <ul class="XDC-list list-unstyled">
@@ -183,15 +183,16 @@ export default {
             isReady: !!this.web3,
             mnemonic: '',
             config: {},
-            provider: 'metamask',
+            provider: 'rpc',
             address: '',
             withdraws: [],
             wh: [],
             aw: false,
             balance: 0,
+            chainConfig: {},
             networks: {
                 // mainnet: 'https://core.XinFin.com',
-                testnet: 'https://testnet.XinFin.com',
+                rpc: 'https://testnet.XinFin.com',
                 custom: 'http://localhost:8545'
             },
             loading: false
@@ -212,10 +213,11 @@ export default {
     watch: {},
     updated () {},
     created: async function () {
-        this.provider = this.NetworkProvider
+        this.provider = this.NetworkProvider || 'rpc'
         let self = this
         self.config = await self.appConfig()
-        self.chainConfig = self.config.blockchain
+        self.chainConfig = self.config.blockchain || {}
+        self.networks.rpc = self.chainConfig.rpc
 
         self.setupAccount = async () => {
             let contract
@@ -231,6 +233,11 @@ export default {
                 }
 
                 let account = await self.getAccount()
+
+                if (!account) {
+                    return false
+                }
+
                 self.address = account
                 self.account = account
                 self.web3.eth.getBalance(self.address, function (a, b) {
@@ -306,7 +313,7 @@ export default {
                 this.save()
             }
         },
-        save: function () {
+        save: async function () {
             const self = this
             var wjs = false
             self.loading = true
@@ -325,44 +332,16 @@ export default {
                     wjs = new Web3(walletProvider)
                 }
 
-                self.setupProvider(this.provider, wjs)
+                await self.setupProvider(this.provider, wjs)
 
-                setTimeout(async () => {
-                    self.loading = false
-                    await self.setupAccount()
-                }, 2000)
+                await self.setupAccount()
+                self.loading = false
             } catch (e) {
                 self.loading = false
                 self.$toasted.show('There are some errors when changing the network provider', {
                     type : 'error'
                 })
                 console.log(e)
-            }
-        },
-        withdraw: async function (blockNumber, index) {
-            let self = this
-            let contract = await self.XDCValidator.deployed()
-            let account = await self.getAccount()
-            self.loading = true
-            try {
-                console.log('==>', blockNumber, index)
-                let wd = await contract.withdraw(String(blockNumber), String(index), {
-                    from: account,
-                    gasPrice: 2500,
-                    gas: 2000000
-                })
-                let toastMessage = wd.tx ? 'You have successfully withdrawed!'
-                    : 'An error occurred while withdrawing, please try again'
-                self.$toasted.show(toastMessage)
-
-                setTimeout(() => {
-                    self.loading = false
-                    if (wd.tx) {
-                        self.$router.push({ path: `/setting` })
-                    }
-                }, 2000)
-            } catch (e) {
-                self.loading = false
             }
         },
         changeView (w, k) {

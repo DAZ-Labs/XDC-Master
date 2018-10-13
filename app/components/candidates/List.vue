@@ -268,8 +268,11 @@ export default {
             if (this.isXDCnet) {
                 this.$router.push({ path: `/voting/${address}` })
             } else {
-                const toastMessage = 'There are some errors. Make sure you have chosen XinFin network or login'
-                this.$toasted.show(toastMessage)
+                const toastMessage = 'You can not vote. Make sure you have chosen XinFin network and login'
+                this.$toasted.show(toastMessage, {
+                    type: 'info',
+                    delay: '5000'
+                })
             }
         }
     }

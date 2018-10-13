@@ -3,19 +3,17 @@ const express = require('express')
 const axios = require('axios')
 const router = express.Router()
 const db = require('../models/mongodb')
-const { Validator } = require('../models/blockchain/validator')
 const uuidv4 = require('uuid/v4')
 const config = require('config')
-const chain = require('../models/blockchain/chain')
+const web3 = require('../models/blockchain/web3')
 const EthereumTx = require('ethereumjs-tx')
 const BigNumber = require('bignumber.js')
 
 router.get('/:voter/candidates', async function (req, res, next) {
-    let validator = await Validator.deployed()
     const limit = (req.query.limit) ? parseInt(req.query.limit) : 100
     const skip = (req.query.page) ? limit * (req.query.page - 1) : 0
     let voters = await db.Voter.find({
-        smartContractAddress: validator.address,
+        smartContractAddress: config.get('blockchain.validatorAddress'),
         voter: (req.params.voter || '').toLowerCase()
     }).limit(limit).skip(skip)
     return res.json(voters)
@@ -45,9 +43,8 @@ router.post('/generateQR', async (req, res, next) => {
         const candidate = (req.body.candidate || '').toLowerCase()
         const action = req.body.action
 
-        let validator = await Validator.deployed()
         let candidateInfo = (await db.Candidate.findOne({
-            smartContractAddress: validator.address,
+            smartContractAddress: config.get('blockchain.validatorAddress'),
             candidate: candidate
         }) || {})
 
@@ -76,7 +73,7 @@ router.post('/verifyTx', async (req, res, next) => {
         const id = req.query.id
         const action = req.body.action
         let signer = req.body.signer
-        let candidate = req.body.candidate
+        let candidate = req.body.candidate || ''
         const amount = !isNaN(req.body.amount) ? parseInt(req.body.amount) : undefined
         const serializedTx = req.body.rawTx
         if (!id) {
@@ -108,16 +105,16 @@ router.post('/verifyTx', async (req, res, next) => {
 
         signedAddress = signedAddress.toLowerCase()
         signer = signer.toLowerCase()
-        candidate = candidate.toLowerCase() || ''
+        candidate = candidate.toLowerCase()
 
         if (signedAddress !== signer) {
             return res.status(406).send('Signed Address and signer are not match')
         }
 
-        await chain.eth.sendRawTransaction(serializedTx, async (error, hash) => {
+        await web3.eth.sendSignedTransaction(serializedTx, async (error, hash) => {
             if (error) {
                 if (action === 'vote') {
-                    chain.eth.getBalance(signedAddress, function (e, balance) {
+                    web3.eth.getBalance(signedAddress, function (e, balance) {
                         if (!e) {
                             if (new BigNumber(balance).div(10 ** 18) < amount) {
                                 return res.status(406).send('Not enough XDC')
@@ -137,7 +134,6 @@ router.post('/verifyTx', async (req, res, next) => {
                 sign.action = action
                 sign.signId = id
                 sign.amount = amount
-                sign.rawTx = serializedTx
                 sign.candidate = candidate
                 sign.tx = hash
 
@@ -162,6 +158,7 @@ router.post('/verifyTx', async (req, res, next) => {
 router.post('/getScanningResult', async (req, res, next) => {
     const id = req.body.id
     const voter = req.body.voter
+    const action = req.body.action || ''
 
     const acc = await db.Voter.findOne({ voter: voter })
 
@@ -169,7 +166,7 @@ router.post('/getScanningResult', async (req, res, next) => {
         return res.status(404).send()
     }
     const signTx = await db.SignTransaction.findOne({ signedAddress: voter })
-    const checkTx = await db.Transaction.findOne({ tx: signTx.tx })
+    const checkTx = action === 'withdraw' ? true : await db.Transaction.findOne({ tx: signTx.tx })
     if (id === signTx.signId && voter === signTx.signedAddress && checkTx) {
         res.json({
             tx: signTx.tx
