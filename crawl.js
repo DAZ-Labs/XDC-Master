@@ -6,6 +6,7 @@ const web3 = require('./models/blockchain/web3')
 const config = require('config')
 const db = require('./models/mongodb')
 const EventEmitter = require('events').EventEmitter
+const moment = require('moment')
 const emitter = new EventEmitter()
 
 process.setMaxListeners(100)
@@ -44,7 +45,7 @@ async function watchValidator () {
                     let owner = (result.returnValues._owner || '').toLowerCase()
                     let capacity = result.returnValues._cap
                     let blk = await web3.eth.getBlock(result.blockNumber)
-                    let createdAt = new Date(blk.timestamp * 1000)
+                    let createdAt = moment.unix(blk.timestamp).utc()
                     let tx = new db.Transaction({
                         smartContractAddress: config.get('blockchain.validatorAddress'),
                         tx: result.transactionHash,
@@ -53,6 +54,7 @@ async function watchValidator () {
                         owner: owner,
                         candidate: candidate,
                         capacity: capacity,
+                        blockNumber: blockNumber,
                         createdAt: createdAt
                     })
                     tx.save()
@@ -225,16 +227,66 @@ async function updateLatestSignedBlock () {
     }
 }
 
+async function getPastEvent () {
+    let blockNumber = await web3.eth.getBlockNumber()
+    let lastBlockTx = await db.Transaction.findOne().sort({ blockNumber: -1 })
+    let lb = (lastBlockTx && lastBlockTx.blockNumber) ? lastBlockTx.blockNumber : 0
+
+    console.log('Get all past event from block', lb, 'to block', blockNumber)
+    validator.getPastEvents('allEvents', { fromBlock: lb, toBlock: blockNumber }, async function (error, events) {
+        if (error) {
+            console.error(error)
+        } else {
+            let map = events.map(async function (event) {
+                if (event.event === 'Withdraw') {
+                    let owner = (event.returnValues._owner || '').toLowerCase()
+                    let blockNumber = event.blockNumber
+                    let capacity = event.returnValues._cap
+                    await db.Withdraw.findOneAndUpdate({ tx: event.transactionHash }, {
+                        smartContractAddress: config.get('blockchain.validatorAddress'),
+                        blockNumber: blockNumber,
+                        tx: event.transactionHash,
+                        owner: owner,
+                        capacity: capacity
+                    }, { upsert: true })
+                } else {
+                    let candidate = (event.returnValues._candidate || '').toLowerCase()
+                    let voter = (event.returnValues._voter || '').toLowerCase()
+                    let owner = (event.returnValues._owner || '').toLowerCase()
+                    let capacity = event.returnValues._cap
+                    let blk = await web3.eth.getBlock(event.blockNumber)
+                    let createdAt = moment.unix(blk.timestamp).utc()
+                    await db.Transaction.updateOne({ tx: event.transactionHash }, {
+                        smartContractAddress: config.get('blockchain.validatorAddress'),
+                        tx: event.transactionHash,
+                        blockNumber: event.blockNumber,
+                        event: event.event,
+                        voter: voter,
+                        owner: owner,
+                        candidate: candidate,
+                        capacity: capacity,
+                        createdAt: createdAt
+                    }, { upsert: true })
+                }
+            })
+            return Promise.all(map)
+        }
+    })
+}
+
 updateSigners(false).then(() => {
     return getCurrentCandidates().then(() => {
-        watchNewBlock()
-        watchValidator()
-        updateLatestSignedBlock()
+        return getPastEvent().then(() => {
+            watchNewBlock()
+            watchValidator()
+            updateLatestSignedBlock()
+        })
     })
 }).catch(e => {
     console.log('getCurrentCandidates', e)
     process.exit(1)
 })
+
 emitter.on('error', e => {
     console.error('ERROR!!!', e)
     process.exit(1)

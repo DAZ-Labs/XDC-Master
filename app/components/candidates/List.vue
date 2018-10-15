@@ -127,6 +127,7 @@
 <script>
 import axios from 'axios'
 import BigNumber from 'bignumber.js'
+import store from 'store'
 
 export default {
     name: 'App',
@@ -167,7 +168,7 @@ export default {
             ],
             sortBy: 'cap',
             sortDesc: true,
-            isReady: !!this.web3,
+            isReady: false,
             account: '',
             voteActive: false,
             voteValue: 1,
@@ -195,13 +196,19 @@ export default {
     created: async function () {
         let self = this
         let config = await self.appConfig()
+        let account
         self.chainConfig = config.blockchain
+        self.isReady = !!self.web3
 
         try {
             if (self.isReady) {
                 let contract = await self.XDCValidator.deployed()
-                let account = this.$store.state.walletLoggedIn
-                    ? this.$store.state.walletLoggedIn : await self.getAccount()
+                if (store.get('address')) {
+                    account = store.get('address').toLowerCase()
+                } else {
+                    account = this.$store.state.walletLoggedIn
+                        ? this.$store.state.walletLoggedIn : await self.getAccount()
+                }
                 if (account && contract) {
                     self.isXDCnet = true
                 }
@@ -267,7 +274,7 @@ export default {
             if (this.isXDCnet) {
                 this.$router.push({ path: `/voting/${address}` })
             } else {
-                const toastMessage = 'You can not vote. Make sure you have chosen XinFin network and login'
+                const toastMessage = 'You can not vote at the moment. Please log in first.'
                 this.$toasted.show(toastMessage, {
                     type: 'info',
                     delay: '5000'

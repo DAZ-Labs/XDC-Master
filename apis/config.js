@@ -5,6 +5,7 @@ const router = express.Router()
 const web3 = require('../models/blockchain/web3')
 const utils = require('ethereumjs-util')
 const db = require('../models/mongodb')
+const jwt = require('jsonwebtoken')
 
 const uuidv4 = require('uuid/v4')
 
@@ -14,7 +15,7 @@ router.get('/', async function (req, res, next) {
     try {
         appConfig.blockchain.blockNumber = await web3.eth.getBlockNumber()
     } catch (e) {
-        console.log(e)
+        appConfig.blockchain.blockNumber = 0
     }
     appConfig.explorerUrl = config.get('explorerUrl')
     appConfig.grafanaUrl = config.get('grafanaUrl')
@@ -118,5 +119,21 @@ function ecRecover (message, signature) {
     const addressBuffer = utils.publicToAddress(publicKey)
     return utils.bufferToHex(addressBuffer)
 }
+
+router.post('/generateWebToken', async (req, res, next) => {
+    try {
+        let payload, token
+        let address = req.body.address
+        payload = {
+            address: address
+        }
+        token = jwt.sign(payload, config.get('jwt_secret'))
+        res.send(token)
+    } catch (e) {
+        console.trace(e)
+        console.log(e)
+        return res.status(500).send()
+    }
+})
 
 module.exports = router

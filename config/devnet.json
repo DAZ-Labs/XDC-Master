@@ -1,0 +1,14 @@
+{
+    "blockchain": {
+        "rpc": "https://rpc.devnet.XinFin.com",
+        "ws": "wss://ws.devnet.XinFin.com",
+        "networkId": 90
+    },
+    "explorerUrl": "https://scan.devnet.XinFin.com",
+    "XDCscanUrl": "http://XDCscan_server:3333",
+    "baseUrl": "https://master.devnet.XinFin.com",
+    "db": {
+        "uri" : "mongodb://XDCmaster_db:27017/governance"
+    },
+    "grafanaUrl": "https://grafana.devnet.XinFin.com"
+}

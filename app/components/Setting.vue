@@ -34,7 +34,7 @@
                                 class="form-text text-muted">Using node at {{ chainConfig.rpc }}.</small>
                         </b-input-group>
                     </b-form-group>
-                    <b-form-group
+                    <!-- <b-form-group
                         v-if="provider === 'custom'"
                         class="mb-4"
                         label="Network URL"
@@ -49,7 +49,7 @@
                         <span
                             v-else-if="$v.networks.custom.$dirty && !$v.networks.custom.localhostUrl"
                             class="text-danger">Wrong URL format</span>
-                    </b-form-group>
+                    </b-form-group> -->
                     <b-form-group
                         v-if="provider === 'rpc'"
                         class="mb-4"
@@ -72,9 +72,19 @@
                             :options="{size: 250 }"
                             :value="qrCode"
                             class="img-fluid text-center text-lg-right"/>
-                        <span
-                            v-if="$v.mnemonic.$dirty && !$v.mnemonic.required"
-                            class="text-danger">Required field</span>
+                        <div
+                            style="margin-top: 5px">
+                            <a
+                                href="https://goo.gl/MvE1GV"
+                                class="social-links__link">
+                                <img src="/app/assets/img/app-store.png" >
+                            </a>
+                            <a
+                                href="https://goo.gl/4tFQzY"
+                                class="social-links__link">
+                                <img src="/app/assets/img/android.png" >
+                            </a>
+                        </div>
                     </b-form-group>
 
                     <div
@@ -190,8 +200,9 @@ import axios from 'axios'
 import {
     required
 } from 'vuelidate/lib/validators'
-import localhostUrl from '../../validators/localhostUrl.js'
+// import localhostUrl from '../../validators/localhostUrl.js'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
+import store from 'store'
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
 export default {
@@ -225,10 +236,10 @@ export default {
     },
     validations: {
         networks: {
-            custom: {
-                required,
-                localhostUrl
-            }
+            // custom: {
+            //     required,
+            //     localhostUrl
+            // }
         },
         mnemonic: {
             required
@@ -243,7 +254,7 @@ export default {
         }
     },
     created: async function () {
-        // this.provider = this.NetworkProvider || 'rpc'
+        this.provider = this.NetworkProvider || 'XDCwallet'
         let self = this
         self.config = await self.appConfig()
         self.chainConfig = self.config.blockchain || {}
@@ -267,7 +278,9 @@ export default {
                     ? this.$store.state.walletLoggedIn : await self.getAccount()
 
                 if (!account) {
-                    return false
+                    if (store.get('address')) {
+                        account = store.get('address')
+                    } else return false
                 }
 
                 self.address = account
@@ -378,6 +391,9 @@ export default {
                 await self.setupAccount()
                 self.loading = false
                 self.$store.state.walletLoggedIn = null
+
+                store.set('address', self.address)
+                store.set('network', self.provider)
             } catch (e) {
                 self.loading = false
                 self.$toasted.show('There are some errors when changing the network provider', {
@@ -433,8 +449,9 @@ export default {
                 await this.getAccountInfo(data.user)
             }
         },
-        onChangeSelect (event) {
+        async onChangeSelect (event) {
             if (event === 'XDCwallet') {
+                await this.loginByQRCode()
                 this.interval = setInterval(async () => {
                     await this.getLoginResult()
                 }, 3000)
@@ -503,6 +520,8 @@ export default {
             })
             self.isReady = true
             self.loading = false
+            store.set('address', account)
+            store.set('network', self.provider)
             if (this.interval) {
                 clearInterval(this.interval)
             }
