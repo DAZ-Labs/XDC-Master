@@ -22,7 +22,7 @@
                                 v-model="provider"
                                 @change="onChangeSelect">
                                 <option
-                                    value="wallet"
+                                    value="XDCwallet"
                                     selected>XDCWallet</option>
                                 <option value="rpc">PrivateKey/MNEMONIC</option>
                                 <option
@@ -65,7 +65,7 @@
                     </b-form-group>
 
                     <b-form-group
-                        v-if="provider === 'wallet' && !$store.state.walletLoggedIn && !address"
+                        v-if="provider === 'XDCwallet'"
                         class="mb-4"
                         style="text-align: center">
                         <vue-qrcode
@@ -88,7 +88,7 @@
 
                     <div class="buttons text-right">
                         <b-button
-                            v-if="provider !== 'wallet'"
+                            v-if="provider !== 'XDCwallet'"
                             type="submit"
                             variant="primary">Save</b-button>
                     </div>
@@ -150,10 +150,14 @@
                             <span class="text-muted">{{ getCurrencySymbol() }}</span></p>
                             <span>Capacity</span>
                         </div>
+                        <!-- <b-button
+                            :disabled="w.blockNumber > chainConfig.blockNumber"
+                            variant="primary"
+                            @click="withdraw(w.blockNumber, k)">Withdraw</b-button> -->
                         <b-button
                             :disabled="w.blockNumber > chainConfig.blockNumber"
                             variant="primary"
-                            @click="withdraw(w.blockNumber, k)">Withdraw</b-button>
+                            @click="changeView(w, k)">Withdraw</b-button>
                     </li>
                 </ul>
                 <ul
@@ -188,7 +192,7 @@ import {
 } from 'vuelidate/lib/validators'
 import localhostUrl from '../../validators/localhostUrl.js'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
-const { HDWalletProvider } = require('../../helpers')
+const HDWalletProvider = require('truffle-hdwallet-provider')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
 export default {
     name: 'App',
@@ -201,7 +205,7 @@ export default {
             isReady: !!this.web3,
             mnemonic: '',
             config: {},
-            provider: 'wallet',
+            provider: 'XDCwallet',
             address: '',
             withdraws: [],
             wh: [],
@@ -211,8 +215,7 @@ export default {
             networks: {
                 // mainnet: 'https://core.XinFin.com',
                 rpc: 'https://testnet.XinFin.com',
-                custom: 'http://localhost:8545',
-                wallet: 'https://testnet.XinFin.com'
+                XDCwallet: 'https://testnet.XinFin.com'
             },
             loading: false,
             qrCode: 'text',
@@ -252,11 +255,12 @@ export default {
                 if (!self.web3 && self.NetworkProvider === 'metamask') {
                     throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
                 }
-
-                try {
-                    contract = await self.XDCValidator.deployed()
-                } catch (error) {
-                    throw Error('Make sure you choose correct XinFin network.')
+                if (self.web3) {
+                    try {
+                        contract = await self.XDCValidator.deployed()
+                    } catch (error) {
+                        throw Error('Make sure you choose correct XinFin network.')
+                    }
                 }
 
                 let account = this.$store.state.walletLoggedIn
@@ -312,7 +316,7 @@ export default {
                 })
             }
         }
-        if (self.provider === 'wallet' && !self.$store.state.walletLoggedIn) {
+        if (self.provider === 'XDCwallet') {
             const hasQRCOde = self.loginByQRCode()
             if (await hasQRCOde) {
                 self.interval = setInterval(async () => {
@@ -361,17 +365,19 @@ export default {
                 } else {
                     const walletProvider =
                         (self.mnemonic.indexOf(' ') >= 0)
-                            ? new HDWalletProvider(self.mnemonic, self.networks[self.provider])
-                            : new PrivateKeyProvider(self.mnemonic, self.networks[self.provider])
+                            ? new HDWalletProvider(
+                                self.mnemonic,
+                                self.chainConfig.rpc, 0, 1, true, "m/44'/889'/0'/0/")
+                            : new PrivateKeyProvider(self.mnemonic, self.chainConfig.rpc)
 
                     wjs = new Web3(walletProvider)
                 }
-                console.log(wjs)
 
                 await self.setupProvider(this.provider, wjs)
 
                 await self.setupAccount()
                 self.loading = false
+                self.$store.state.walletLoggedIn = null
             } catch (e) {
                 self.loading = false
                 self.$toasted.show('There are some errors when changing the network provider', {
@@ -428,7 +434,7 @@ export default {
             }
         },
         onChangeSelect (event) {
-            if (event === 'wallet') {
+            if (event === 'XDCwallet') {
                 this.interval = setInterval(async () => {
                     await this.getLoginResult()
                 }, 3000)
@@ -441,8 +447,13 @@ export default {
         async getAccountInfo (account) {
             const self = this
             let contract
-            self.$store.state.web3 = await new Web3(new Web3.providers.HttpProvider(self.networks[self.provider]))
-            await self.setupProvider(this.provider, false)
+            self.address = account
+            self.$store.state.walletLoggedIn = account
+            const web3 = new Web3(new HDWalletProvider(
+                '',
+                self.chainConfig.rpc, 0, 1, true, "m/44'/889'/0'/0/"))
+
+            await self.setupProvider(this.provider, web3)
             try {
                 contract = await self.XDCValidator.deployed()
             } catch (error) {
@@ -454,8 +465,6 @@ export default {
                 })
             }
 
-            self.address = account
-            self.$store.state.walletLoggedIn = account
             self.web3.eth.getBalance(self.address, function (a, b) {
                 self.balance = new BigNumber(b).div(10 ** 18).toFormat()
                 if (a) {
@@ -497,7 +506,16 @@ export default {
             if (this.interval) {
                 clearInterval(this.interval)
             }
-            self.$toasted.show('Network Provider was changed successfully')
+        },
+        changeView (w, k) {
+            this.$router.push({ name: 'CandidateWithdraw',
+                params: {
+                    address: this.address,
+                    blockNumber: w.blockNumber,
+                    capacity: w.cap,
+                    index: k
+                }
+            })
         }
     }
 }

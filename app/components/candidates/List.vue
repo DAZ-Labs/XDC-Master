@@ -199,14 +199,12 @@ export default {
 
         try {
             if (self.isReady) {
-                setTimeout(async () => {
-                    const contract = await self.XDCValidator.deployed()
-                    const account = this.$store.state.walletLoggedIn
-                        ? this.$store.state.walletLoggedIn : await self.getAccount()
-                    if (account && contract) {
-                        self.isXDCnet = true
-                    }
-                }, 0)
+                let contract = await self.XDCValidator.deployed()
+                let account = this.$store.state.walletLoggedIn
+                    ? this.$store.state.walletLoggedIn : await self.getAccount()
+                if (account && contract) {
+                    self.isXDCnet = true
+                }
             }
         } catch (error) {
             console.log(error)
