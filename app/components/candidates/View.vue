@@ -1,8 +1,5 @@
 <template>
-    <div
-        v-if="loading"
-        class="XDC-loading"/>
-    <div v-else>
+    <div>
         <div class="container section section--candidate">
             <div class="row">
                 <div class="col-12">
@@ -25,7 +22,9 @@
                     </div>
                 </div>
             </div>
-            <b-card class="XDC-card XDC-card--animated XDC-card--candidate">
+            <b-card
+                :class="'XDC-card XDC-card--animated XDC-card--candidate'
+                + (loading ? ' XDC-loading' : '')">
                 <div class="row m-md-0">
                     <div
                         :class="'col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 XDC-info XDC-info-status--'
@@ -197,7 +196,9 @@
                 </div>
             </div>
         </div>
-        <div class="container section section--mnrewards">
+        <div
+            :class="'container section section--mnrewards'
+            + (loading ? ' XDC-loading' : '')">
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
@@ -250,7 +251,9 @@
                 align="center"
                 class="XDC-pagination" />
         </div>
-        <div class="container section section-voters">
+        <div
+            :class="'container section section-voters'
+            + (loading ? ' XDC-loading' : '')">
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
@@ -300,7 +303,9 @@
                 align="center"
                 class="XDC-pagination" />
         </div>
-        <div class="container section section--txs">
+        <div
+            :class="'container section section--txs'
+            + (loading ? ' XDC-loading' : '')">
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
