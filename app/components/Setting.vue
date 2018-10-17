@@ -202,7 +202,6 @@ import {
 } from 'vuelidate/lib/validators'
 // import localhostUrl from '../../validators/localhostUrl.js'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
-import store from 'store'
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
 export default {
@@ -278,9 +277,7 @@ export default {
                     ? this.$store.state.walletLoggedIn : await self.getAccount()
 
                 if (!account) {
-                    if (store.get('address')) {
-                        account = store.get('address')
-                    } else return false
+                    return false
                 }
 
                 self.address = account
@@ -391,9 +388,6 @@ export default {
                 await self.setupAccount()
                 self.loading = false
                 self.$store.state.walletLoggedIn = null
-
-                store.set('address', self.address)
-                store.set('network', self.provider)
             } catch (e) {
                 self.loading = false
                 self.$toasted.show('There are some errors when changing the network provider', {
@@ -520,8 +514,6 @@ export default {
             })
             self.isReady = true
             self.loading = false
-            store.set('address', account)
-            store.set('network', self.provider)
             if (this.interval) {
                 clearInterval(this.interval)
             }

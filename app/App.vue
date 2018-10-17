@@ -11,7 +11,7 @@
                         <b-form-input
                             v-model="search"
                             type="text"
-                            placeholder="Search..."
+                            placeholder="Search Candidate / Voter address ..."
                             @keyup.enter="searchCandidate"
                         />
                         <b-button
@@ -48,7 +48,6 @@
 
 <script>
 import axios from 'axios'
-import store from 'store'
 export default {
     name: 'App',
     data () {
@@ -66,9 +65,6 @@ export default {
         let self = this
 
         try {
-            if (store.get('network')) {
-                await self.detectNetwork(store.get('network'))
-            }
             if (!self.web3 && self.NetworkProvider === 'metamask') {
                 throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
             }
@@ -98,6 +94,11 @@ export default {
 
                     return this.$router.push(to)
                 })
+            } else {
+                // try to search by name
+                // duplicate name
+
+                this.$toasted.show('You can only search by candidate or voter address')
             }
         },
         goPage: function (s) {
@@ -105,15 +106,10 @@ export default {
         },
         async checkNetworkAndLogin () {
             setTimeout(async () => {
-                let account
                 try {
                     const contract = await this.XDCValidator.deployed()
-                    if (store.get('address')) {
-                        account = store.get('address').toLowerCase()
-                    } else {
-                        account = this.$store.state.walletLoggedIn
-                            ? this.$store.state.walletLoggedIn : await self.getAccount()
-                    }
+                    const account = this.$store.state.walletLoggedIn
+                        ? this.$store.state.walletLoggedIn : await this.getAccount()
                     if (account && contract) {
                         this.isXDCnet = true
                     }

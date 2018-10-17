@@ -108,7 +108,6 @@ import {
 import coinbaseAddress from '../../../validators/coinbaseAddress.js'
 // import nodeUrl from '../../../validators/nodeUrl.js'
 import NumberInput from '../NumberInput.vue'
-import store from 'store'
 
 export default {
     name: 'App',
@@ -149,10 +148,6 @@ export default {
     created: async function () {
         let self = this
         try {
-            if (store.get('network')) {
-                await self.detectNetwork(store.get('network'))
-                self.isReady = !!self.web3
-            }
             if (!self.web3 && self.NetworkProvider === 'metamask') {
                 throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
             }

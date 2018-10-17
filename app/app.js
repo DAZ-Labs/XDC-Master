@@ -27,7 +27,6 @@ import Highcharts from 'highcharts'
 import stockInit from 'highcharts/modules/stock'
 import VueClipboards from 'vue-clipboards'
 import Vuex from 'vuex'
-import HDWalletProvider from 'truffle-hdwallet-provider'
 
 Vue.use(BootstrapVue)
 Vue.use(VueClipboards)
@@ -201,9 +200,9 @@ const router = new VueRouter({
 })
 
 getConfig().then((config) => {
-    // let provider = 'XDCwallet'
-    // var web3js = new Web3(new Web3.providers.HttpProvider(config.blockchain.rpc))
-    // Vue.prototype.setupProvider(provider, web3js)
+    let provider = 'XDCwallet'
+    var web3js = new Web3(new Web3.providers.HttpProvider(config.blockchain.rpc))
+    Vue.prototype.setupProvider(provider, web3js)
 
     Vue.use(VueAnalytics, {
         id: config.GA,
@@ -221,34 +220,10 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
     state: {
-        walletLoggedIn: null
+        walletLoggedIn: null,
+        web3: null
     }
 })
-Vue.prototype.detectNetwork = async function (provider) {
-    try {
-        let wjs = false
-        const config = await getConfig()
-        const chainConfig = config.blockchain
-        switch (provider) {
-        case 'metamask':
-            if (window.web3) {
-                var p = window.web3.currentProvider
-                wjs = new Web3(p)
-            }
-            break
-        case 'XDCwallet':
-            wjs = new Web3(new HDWalletProvider(
-                '',
-                chainConfig.rpc, 0, 1, true, "m/44'/889'/0'/0/"))
-            break
-        default:
-            break
-        }
-        await this.setupProvider(provider, await wjs)
-    } catch (error) {
-        console.log(error)
-    }
-}
 
 new Vue({ // eslint-disable-line no-new
     el: '#app',
