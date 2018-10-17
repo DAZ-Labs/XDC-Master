@@ -26,7 +26,8 @@
                 <div class="col-md-6 col-lg-3">
                     <b-card class="XDC-card XDC-card">
                         <h6 class="XDC-card__title">Epoch</h6>
-                        <p class="XDC-card__text">#{{ Math.floor(chainConfig.blockNumber / chainConfig.epoch) }}</p>
+                        <p class="XDC-card__text">
+                            #{{ Math.floor(chainConfig.blockNumber / chainConfig.epoch) + 1 }}</p>
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -91,14 +92,11 @@
                     slot-scope="data">
                     <div class="mt-2 mt-lg-0">
                         <span
-                            v-if="!data.item.isMasternode"
                             :class="'XDC-chip '
-                            + (data.item.status === 'PROPOSED' ? 'XDC-chip--primary' : 'XDC-chip--accent') ">
+                                + (data.item.status === 'PROPOSED' || data.item.status === 'MASTERNODE' ?
+                            'XDC-chip--primary' : 'XDC-chip--accent') ">
                             {{ data.item.status.toUpperCase() }}
                         </span>
-                        <span
-                            v-else
-                            class="XDC-chip XDC-chip--primary XDC-chip--masternode">MASTERNODE</span>
                     </div>
                 </template>
 
@@ -106,7 +104,7 @@
                     slot="action"
                     slot-scope="data">
                     <b-button
-                        v-if="data.item.status === 'PROPOSED'"
+                        v-if="data.item.status === 'PROPOSED' || data.item.status === 'MASTERNODE'"
                         variant="primary"
                         class="mt-3 mt-lg-0 vote-btn"
                         @click="onRowClick(data.item.address)">Vote</b-button>
@@ -127,6 +125,7 @@
 <script>
 import axios from 'axios'
 import BigNumber from 'bignumber.js'
+import store from 'store'
 
 export default {
     name: 'App',
@@ -167,7 +166,7 @@ export default {
             ],
             sortBy: 'cap',
             sortDesc: true,
-            isReady: !!this.web3,
+            isReady: false,
             account: '',
             voteActive: false,
             voteValue: 1,
@@ -195,13 +194,19 @@ export default {
     created: async function () {
         let self = this
         let config = await self.appConfig()
+        let account
         self.chainConfig = config.blockchain
+        self.isReady = !!self.web3
 
         try {
             if (self.isReady) {
                 let contract = await self.XDCValidator.deployed()
-                let account = this.$store.state.walletLoggedIn
-                    ? this.$store.state.walletLoggedIn : await self.getAccount()
+                if (store.get('address')) {
+                    account = store.get('address').toLowerCase()
+                } else {
+                    account = this.$store.state.walletLoggedIn
+                        ? this.$store.state.walletLoggedIn : await self.getAccount()
+                }
                 if (account && contract) {
                     self.isXDCnet = true
                 }
@@ -220,6 +225,7 @@ export default {
                     owner: candidate.owner.toLowerCase(),
                     status: candidate.status,
                     isMasternode: candidate.isMasternode,
+                    isPenalty: candidate.isPenalty,
                     name: candidate.name || 'Anonymous',
                     cap: new BigNumber(candidate.capacity).div(10 ** 18).toNumber(),
                     latestSignedBlock: candidate.latestSignedBlock

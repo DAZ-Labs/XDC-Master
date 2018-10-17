@@ -8,6 +8,8 @@ const validator = require('../models/blockchain/validator')
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
 const config = require('config')
+const _ = require('lodash')
+const { check, validationResult } = require('express-validator/check')
 
 router.get('/', async function (req, res, next) {
     const limit = (req.query.limit) ? parseInt(req.query.limit) : 200
@@ -17,21 +19,39 @@ router.get('/', async function (req, res, next) {
             db.Candidate.find({
                 smartContractAddress: config.get('blockchain.validatorAddress')
             }).limit(limit).skip(skip).lean().exec(),
-            db.Signer.findOne({}).sort({ _id: 'desc' })
+            db.Signer.findOne({}).sort({ _id: 'desc' }),
+            db.Penalty.findOne({}).sort({ _id: 'desc' })
         ])
 
         let candidates = data[0]
         let latestSigners = data[1]
+        let latestPenalties = data[2]
 
         const signers = (latestSigners || {}).signers || []
-        const set = new Set()
+        const penalties = (latestPenalties || {}).penalties || []
+        const setS = new Set()
         for (let i = 0; i < signers.length; i++) {
-            set.add((signers[i] || '').toLowerCase())
+            setS.add((signers[i] || '').toLowerCase())
+        }
+
+        const setP = new Set()
+        for (let i = 0; i < penalties.length; i++) {
+            setP.add((penalties[i] || '').toLowerCase())
         }
 
         let map = candidates.map(async c => {
             // is masternode
-            c.isMasternode = set.has((c.candidate || '').toLowerCase())
+            if (signers.length === 0) {
+                c.isMasternode = !!c.latestSignedBlock
+            } else {
+                c.isMasternode = setS.has((c.candidate || '').toLowerCase())
+            }
+            // is penalty
+            c.isPenalty = setP.has((c.candidate || '').toLowerCase())
+
+            c.status = (c.isMasternode) ? 'MASTERNODE' : c.status
+            c.status = (c.isPenalty) ? 'SLASHED' : c.status
+
             return c
         })
         let ret = await Promise.all(map)
@@ -283,6 +303,57 @@ router.get('/:candidate/:owner/getRewards', async function (req, res, next) {
             }
         )
         res.json(rewards.data)
+    } catch (e) {
+        return next(e)
+    }
+})
+
+// Update masternode info
+router.put('/update', [
+    check('name').isLength({ min: 3, max: 30 }).optional().withMessage('Name must be 3 - 30 chars long'),
+    check('hardware').isLength({ min: 3, max: 30 }).optional().withMessage('Hardware must be 3 - 30 chars long'),
+    check('dcName').isLength({ min: 2, max: 30 }).optional().withMessage('dcName must be 2 - 30 chars long'),
+    check('dcLocation').isLength({ min: 2, max: 30 }).optional().withMessage('dcLocation must be 2 - 30 chars long')
+], async function (req, res, next) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return next(errors.array())
+    }
+    try {
+        const { signedMessage, message } = req.body
+        const candidate = (req.body.candidate || '').toLowerCase()
+        const c = await db.Candidate.findOne({
+            candidate: candidate
+        })
+        if (!c) {
+            return next(new Error('Not found'))
+        }
+
+        const body = req.body
+        let set = _.pick(body, ['name', 'hardware'])
+
+        if (body.dcName) {
+            set['dataCenter.name'] = body.dcName
+        }
+        if (body.dcLocation) {
+            set['dataCenter.location'] = body.dcLocation
+        }
+
+        const address = await web3.eth.accounts.recover(message, signedMessage)
+
+        if (
+            address.toLowerCase() === c.candidate.toLowerCase() ||
+            address.toLowerCase() === c.owner.toLowerCase()
+        ) {
+            await db.Candidate.updateOne({
+                candidate: candidate.toLowerCase()
+            }, {
+                $set: set
+            })
+            return res.json({ status: 'OK' })
+        } else {
+            return next(new Error('Authentication failed'))
+        }
     } catch (e) {
         return next(e)
     }

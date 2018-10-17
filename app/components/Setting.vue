@@ -24,13 +24,12 @@
                                 <option
                                     value="XDCwallet"
                                     selected>XDCWallet</option>
-                                <option value="rpc">PrivateKey/MNEMONIC</option>
+                                <option value="custom">PrivateKey/MNEMONIC</option>
                                 <option
                                     v-if="!isElectron"
                                     value="metamask">Metamask</option>
                             </b-form-select>
                             <small
-                                v-if="provider === 'rpc'"
                                 class="form-text text-muted">Using node at {{ chainConfig.rpc }}.</small>
                         </b-input-group>
                     </b-form-group>
@@ -51,7 +50,7 @@
                             class="text-danger">Wrong URL format</span>
                     </b-form-group> -->
                     <b-form-group
-                        v-if="provider === 'rpc'"
+                        v-if="provider === 'custom'"
                         class="mb-4"
                         label="Privatekey/MNEMONIC"
                         label-for="mnemonic">
@@ -75,14 +74,18 @@
                         <div
                             style="margin-top: 5px">
                             <a
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 href="https://goo.gl/MvE1GV"
                                 class="social-links__link">
-                                <img src="/app/assets/img/app-store.png" >
+                                <img src="/app/assets/img/appstore.png" >
                             </a>
                             <a
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 href="https://goo.gl/4tFQzY"
                                 class="social-links__link">
-                                <img src="/app/assets/img/android.png" >
+                                <img src="/app/assets/img/googleplay.png" >
                             </a>
                         </div>
                     </b-form-group>
@@ -202,6 +205,7 @@ import {
 } from 'vuelidate/lib/validators'
 // import localhostUrl from '../../validators/localhostUrl.js'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
+import store from 'store'
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const PrivateKeyProvider = require('truffle-privatekey-provider')
 export default {
@@ -261,6 +265,7 @@ export default {
 
         self.setupAccount = async () => {
             let contract
+            let account
             try {
                 if (!self.web3 && self.NetworkProvider === 'metamask') {
                     throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
@@ -273,11 +278,17 @@ export default {
                     }
                 }
 
-                let account = this.$store.state.walletLoggedIn
-                    ? this.$store.state.walletLoggedIn : await self.getAccount()
+                if (store.get('address') && self.isReady) {
+                    account = store.get('address').toLowerCase()
+                } else {
+                    account = this.$store.state.walletLoggedIn
+                        ? this.$store.state.walletLoggedIn : (self.web3 ? await self.getAccount() : false)
+                }
 
                 if (!account) {
-                    return false
+                    if (store.get('address') && self.provider !== 'custom') {
+                        account = store.get('address')
+                    } else return false
                 }
 
                 self.address = account
@@ -363,6 +374,7 @@ export default {
             }
         },
         save: async function () {
+            store.clearAll()
             const self = this
             var wjs = false
             self.loading = true
@@ -388,6 +400,9 @@ export default {
                 await self.setupAccount()
                 self.loading = false
                 self.$store.state.walletLoggedIn = null
+
+                store.set('address', self.address)
+                store.set('network', self.provider)
             } catch (e) {
                 self.loading = false
                 self.$toasted.show('There are some errors when changing the network provider', {
@@ -423,7 +438,7 @@ export default {
         },
         async loginByQRCode () {
             // generate qr code
-            const { data } = await axios.get('/api/config/generateLoginQR')
+            const { data } = await axios.get('/api/auth/generateLoginQR')
             this.id = data.id
             this.qrCode = encodeURI(
                 'XinFin:login?message=' + data.message +
@@ -433,7 +448,7 @@ export default {
         },
         async getLoginResult () {
             // calling api every 2 seconds
-            const { data } = await axios.post('/api/config/getLoginResult', { messId: this.id })
+            const { data } = await axios.post('/api/auth/getLoginResult', { messId: this.id })
 
             if (!data.error && data) {
                 this.loading = true
@@ -514,6 +529,8 @@ export default {
             })
             self.isReady = true
             self.loading = false
+            store.set('address', account)
+            store.set('network', self.provider)
             if (this.interval) {
                 clearInterval(this.interval)
             }

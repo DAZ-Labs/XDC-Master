@@ -48,10 +48,12 @@
 
 <script>
 import axios from 'axios'
+import store from 'store'
 export default {
     name: 'App',
     data () {
         return {
+            isReady: !!this.web3,
             showProgressBar: false,
             selectedCandidate: null,
             search: null,
@@ -65,7 +67,7 @@ export default {
         let self = this
 
         try {
-            if (!self.web3 && self.NetworkProvider === 'metamask') {
+            if (!self.isReady && self.NetworkProvider === 'metamask') {
                 throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
             }
             await self.checkNetworkAndLogin()
@@ -77,39 +79,39 @@ export default {
         searchCandidate (e) {
             e.preventDefault()
 
-            let regexpAddr = /^(0x)?[0-9a-fA-F]{40}$/
             let to = null
             let search = this.search.trim()
-
-            if (regexpAddr.test(search)) {
-                return axios.get(`/api/search/${search}`).then((response) => {
-                    if (Object.keys(response.data.candidate).length > 0) {
-                        to = { path: `/candidate/${search}` }
-                    } else {
+            axios.get(`/api/search/${search}`)
+                .then((response) => {
+                    const data = response.data
+                    if (Object.keys(data.candidate).length > 0) {
+                        to = { path: `/candidate/${data.candidate.candidate}` }
+                    } else if (Object.keys(data.voter).length > 0) {
                         to = { path: `/voter/${search}` }
+                    } else {
+                        this.$toasted.show('Not found')
                     }
                     if (!to) {
                         return false
                     }
-
+                    this.search = ''
                     return this.$router.push(to)
-                })
-            } else {
-                // try to search by name
-                // duplicate name
-
-                this.$toasted.show('You can only search by candidate or voter address')
-            }
+                }).catch(e => console.log(e))
         },
         goPage: function (s) {
             this.$router.push({ path: `/candidate/${s}` })
         },
         async checkNetworkAndLogin () {
             setTimeout(async () => {
+                let account
                 try {
                     const contract = await this.XDCValidator.deployed()
-                    const account = this.$store.state.walletLoggedIn
-                        ? this.$store.state.walletLoggedIn : await this.getAccount()
+                    if (store.get('address')) {
+                        account = store.get('address').toLowerCase()
+                    } else {
+                        account = this.$store.state.walletLoggedIn
+                            ? this.$store.state.walletLoggedIn : await self.getAccount()
+                    }
                     if (account && contract) {
                         this.isXDCnet = true
                     }
