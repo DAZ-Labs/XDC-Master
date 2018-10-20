@@ -117,20 +117,11 @@ export default {
         },
         series (newValue) {
             this.chartOptions.series = newValue
-        },
-        host: async function (newValue, oldValue) {
-            this.host = newValue
-            // rebuild CPUs
-            let query = this.buildQuery()
-
-            let data = await this.fetchData('telegraf', query, 'ms')
-            this.series = this.bindDataToChart(data, this.colors, this.fillColor)
         }
     },
     mounted: async function () {
-        // console.log(this.host)
         this.config = await this.appConfig()
-        this.colors = [
+        let colors = [
             {
                 linearGradient: {
                     x1: '50%',
@@ -159,7 +150,7 @@ export default {
             }
         ]
 
-        this.fillColor = {
+        let fillColor = {
             linearGradient: {
                 x1: '50%',
                 y1: '100%',
@@ -172,10 +163,26 @@ export default {
         }
 
         // CPUs
-        let query = this.buildQuery()
+        let host = this.host
+        let alias = []
+        let query = ''
+
+        if (this.dataType === 'cpu') {
+            alias = [ `${host}_cpu_user`, `${host}_cpu_idle` ]
+            // eslint-disable-next-line max-len
+            query = `SELECT mean("usage_user") AS "${alias[0]}" FROM "cpu" WHERE ("cpu" = 'cpu-total' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(60s) fill(null);SELECT mean("usage_idle") AS "${alias[1]}"  FROM "cpu" WHERE ("cpu" = 'cpu-total' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(60s) fill(null)`
+            query = encodeURI(query).replace('=', '%3D').replace(';', '%3B')
+        }
+
+        if (this.dataType === 'memory') {
+            alias = `${host}_memory_usage`
+            // eslint-disable-next-line max-len
+            query = `SELECT mean("used_percent") AS "${alias}" FROM "mem" WHERE ("host" = '${host}') AND time >= now() - 6h GROUP BY time(60s) fill(null)`
+            query = encodeURI(query).replace('=', '%3D').replace(';', '%3B')
+        }
 
         let data = await this.fetchData('telegraf', query, 'ms')
-        this.series = this.bindDataToChart(data, this.colors, this.fillColor)
+        this.series = this.bindDataToChart(data, colors, fillColor)
     },
     methods: {
         fetchData: async function (db, query, epoch) {
@@ -225,26 +232,6 @@ export default {
             }
 
             return chartSeries
-        },
-        buildQuery () {
-            let host = this.host
-            let alias = []
-            let query = ''
-
-            if (this.dataType === 'cpu') {
-                alias = [ `${host}_cpu_user`, `${host}_cpu_idle` ]
-                // eslint-disable-next-line max-len
-                query = `SELECT mean("usage_user") AS "${alias[0]}" FROM "cpu" WHERE ("cpu" = 'cpu-total' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(60s) fill(null);SELECT mean("usage_idle") AS "${alias[1]}"  FROM "cpu" WHERE ("cpu" = 'cpu-total' AND "host" = '${host}') AND time >= now() - 6h GROUP BY time(60s) fill(null)`
-                query = encodeURI(query).replace('=', '%3D').replace(';', '%3B')
-            }
-
-            if (this.dataType === 'memory') {
-                alias = `${host}_memory_usage`
-                // eslint-disable-next-line max-len
-                query = `SELECT mean("used_percent") AS "${alias}" FROM "mem" WHERE ("host" = '${host}') AND time >= now() - 6h GROUP BY time(60s) fill(null)`
-                query = encodeURI(query).replace('=', '%3D').replace(';', '%3B')
-            }
-            return query
         }
     }
 }
