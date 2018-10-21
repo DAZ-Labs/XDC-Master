@@ -9,7 +9,6 @@ This is Governance Dapp for XinFin. Full-Node can apply to become a candidate fo
 
 ## Requirements
 - NodeJS (If you get EACCES permission issue, please see: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally)
-- Redis
 - MongoDB
 - Truffle Framework
 
@@ -31,25 +30,7 @@ Update `local.json` file to support your environment
     "uri": "mongodb://localhost:27017/governance"
   },
   `
-  - Update redis configuration:
-    - For docker:
-    `
-    "redis": {
-    "host": "redis",
-    "port": 6379,
-    "password": null,
-    "prefix": "XDCmaster"
-    },
-    `
-    - For localhost:
-    `
-    "redis": {
-    "host": "localhost",
-    "port": 6379,
-    "password": null,
-    "prefix": "XDCmaster"
-    },
-  `
+
 
 ## Install
 ```
@@ -61,7 +42,6 @@ Note: before deploying to XinFin testnet, make sure you have XDC in the wallet. 
 
 ## Run
 - Start mongodb
-- Start Redis
 - Start XDCMaster
 ```
 npm run dev
