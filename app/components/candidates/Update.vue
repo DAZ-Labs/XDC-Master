@@ -1,0 +1,387 @@
+<template>
+    <div class="container">
+        <b-row
+            v-if="step === 1"
+            align-v="center"
+            align-h="center"
+            class="m-0">
+            <b-card
+                :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
+                + (loading ? ' XDC-loading' : '')">
+                <h4 class=" color-white XDC-card__title XDC-card__title--big">Update Candidate Information</h4>
+                <b-form
+                    class="XDC-form XDC-form--vote"
+                    novalidate
+                    @submit.prevent="validate()">
+                    <b-form-group
+                        label="Name"
+                        label-for="name-value">
+                        <b-form-input
+                            v-model="name"
+                            name="name-value"/>
+                        <span
+                            v-if="$v.name.$dirty && (!$v.name.minLength || !$v.name.maxLength)"
+                            class="text-danger">Name must be 3 - 30 chars long</span>
+                    </b-form-group>
+                    <b-form-group
+                        label="Hardware"
+                        label-for="hardware-value">
+                        <b-form-input
+                            v-model="hardware"
+                            name="hardware-value"/>
+                        <span
+                            v-if="$v.hardware.$dirty && (!$v.hardware.minLength || !$v.hardware.maxLength)"
+                            class="text-danger">Hardware must be 3 - 30 chars long</span>
+                    </b-form-group>
+                    <b-form-group
+                        label="Data Center Name"
+                        label-for="dcName-value">
+                        <b-form-input
+                            v-model="dcName"
+                            name="dcName-value"/>
+                        <span
+                            v-if="$v.dcName.$dirty && (!$v.dcName.minLength || !$v.dcName.maxLength)"
+                            class="text-danger">Data Center Name must be 2 - 30 chars long</span>
+                    </b-form-group>
+                    <b-form-group
+                        label="Data Center Location"
+                        label-for="dcLocation-value">
+                        <b-form-input
+                            v-model="dcLocation"
+                            name="dcLocation-value"/>
+                        <span
+                            v-if="$v.dcLocation.$dirty && (!$v.dcLocation.minLength || !$v.dcLocation.maxLength)"
+                            class="text-danger">Data Canter Location must be 2 - 30 chars long</span>
+                    </b-form-group>
+                    <div class="buttons text-right">
+                        <b-button
+                            type="button"
+                            variant="secondary"
+                            @click="$router.go(-1)">Cancel</b-button>
+                        <b-button
+                            type="submit"
+                            variant="primary">Next</b-button>
+                    </div>
+                </b-form>
+            </b-card>
+        </b-row>
+        <b-row
+            v-if="step === 2"
+            align-v="center"
+            align-h="center"
+            class="m-0">
+            <b-card
+                :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--lighter p-0'
+                + (loading ? ' XDC-loading' : '')">
+                <h4 class=" color-white XDC-card__title XDC-card__title--big">Confirmation</h4>
+                <div>
+                    <div
+                        class="wrapper">
+                        <div
+                            id="one">
+                            <div>
+                                <label><b>Name:</b></label>
+                                <b-form-input
+                                    v-model="name"
+                                    class="form-control"
+                                    readonly />
+                            </div>
+                            <div style="margin-top: 5px">
+                                <label><b>Hardware:</b></label>
+                                <b-form-input
+                                    v-model="hardware"
+                                    class="form-control"
+                                    readonly />
+                            </div>
+                            <div style="margin-top: 5px">
+                                <label><b>Data Center Name:</b></label>
+                                <b-form-input
+                                    v-model="dcName"
+                                    class="form-control"
+                                    readonly />
+                            </div>
+                            <div style="margin-top: 5px">
+                                <label><b>Data Center Location:</b></label>
+                                <b-form-input
+                                    v-model="dcLocation"
+                                    class="form-control"
+                                    readonly />
+                            </div>
+                        </div>
+                        <div
+                            style="margin-top: 20px">
+                            <div
+                                v-if="provider === 'XDCwallet'"
+                                style="text-align: center">
+                                <vue-qrcode
+                                    :value="qrCode"
+                                    :options="{size: 200 }"
+                                    tag="img"
+                                    class="img-fluid text-center text-lg-right"/>
+                                <div
+                                    class="mt-1">
+                                    <span
+                                        class="text-danger"><b>{{ signHashError }}</b></span>
+                                </div>
+                            </div>
+                            <div
+                                v-if="provider === 'metamask'">
+                                <strong>Copy message below and sign the message using
+                                    <a
+                                        href="https://www.mycrypto.com/signmsg.html"
+                                        style="color: #3498db">MyCrypto</a>
+                                    or <a
+                                        href="https://www.myetherwallet.com/signmsg.html"
+                                        style="color: #3498db">MyEtherWallet</a>
+                                </strong>
+                                <label style="margin-top: 5px">
+                                    <div>
+                                        <textarea
+                                            ref="text"
+                                            :value="message"
+                                            class="sign-message"
+                                            type="text"
+                                            readonly
+                                            cols="100"
+                                            rows="2"
+                                            style="width: 100%"
+                                            @click="copyTextArea"/>
+                                    </div>
+                                </label>
+                                <div>
+                                    <input
+                                        v-model="signHash"
+                                        class="form-control"
+                                        type="text"
+                                        style="box-sizing: border-box; width: 100%"
+                                        placeholder="Enter the message signature hash">
+                                    <span
+                                        class="text-danger">{{ signHashError }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        style="margin-top: 10px"
+                        class="buttons text-right">
+                        <b-button
+                            type="button"
+                            variant="secondary"
+                            @click="backStep">Back</b-button>
+                        <button
+                            v-if="provider !== 'XDCwallet'"
+                            class="btn btn-primary"
+                            variant="primary"
+                            @click="update">Submit</button>
+                    </div>
+                </div>
+            </b-card>
+        </b-row>
+    </div>
+</template>
+<script>
+// import Web3 from 'web3'
+import { validationMixin } from 'vuelidate'
+import {
+    minLength,
+    maxLength
+} from 'vuelidate/lib/validators'
+import axios from 'axios'
+import VueQrcode from '@chenfengyuan/vue-qrcode'
+import store from 'store'
+export default {
+    name: 'App',
+    components: {
+        VueQrcode
+    },
+    mixins: [validationMixin],
+    data () {
+        return {
+            isReady: !!this.web3,
+            address: this.$route.params.address.toLowerCase(),
+            name: '',
+            hardware: '',
+            dcName: '',
+            dcLocation: '',
+            loading: false,
+            step: 1,
+            provider: this.NetworkProvider || store.get('network') || null,
+            qrCode: 'text',
+            message: '',
+            signHash: '',
+            signHashError: '',
+            id: '',
+            interval: null
+        }
+    },
+    validations: {
+        name: {
+            maxLength: maxLength(30),
+            minLength: minLength(3)
+        },
+        hardware: {
+            maxLength: maxLength(30),
+            minLength: minLength(3)
+        },
+        dcName: {
+            maxLength: maxLength(30),
+            minLength: minLength(2)
+        },
+        dcLocation: {
+            maxLength: maxLength(30),
+            minLength: minLength(2)
+        }
+    },
+    beforeDestroy () {
+        if (this.interval) {
+            clearInterval(this.interval)
+        }
+    },
+    async created () {
+        let self = this
+        if (!self.isReady) {
+            self.$router.push({ path: '/setting' })
+            throw Error('Web3 is not properly detected.')
+        }
+        const { data } = await axios.get(`/api/candidates/${self.address}`)
+        if (data) {
+            self.name = data.name ? data.name : 'Anonymous Candidate'
+            self.hardware = data.hardware
+            self.dcName = (data.dataCenter || {}).name || 'N/A'
+            self.dcLocation = (data.dataCenter || {}).location || 'N/A'
+        }
+    },
+    methods: {
+        getValidationClass: function (fieldName) {
+            const field = this.$v[fieldName]
+
+            if (field) {
+                return {
+                    'is-invalid': field.$error
+                }
+            }
+        },
+        validate: function () {
+            this.$v.$touch()
+
+            if (!this.$v.$invalid) {
+                this.nextStep()
+                // this.update()
+            }
+        },
+        update: async function () {
+            let self = this
+            const account = (await self.getAccount() || '').toLowerCase()
+            try {
+                if (self.provider === 'metamask' && self.signHash === '') {
+                    self.signHashError = 'This field is required'
+                    return false
+                }
+                self.loading = true
+                if (self.provider === 'custom') {
+                    self.signHash = await self.web3.eth.sign(self.message, account)
+                }
+                // calling update api
+                await self.updateCandidateInfo()
+            } catch (e) {
+                console.log(e)
+                self.loading = false
+                self.$toasted.show(`An error occurred while updating. ${String(e)}`, {
+                    type: 'error'
+                })
+            }
+        },
+        async nextStep () {
+            const self = this
+            if (self.provider !== 'custom') {
+                const { data } = await axios.get('/api/candidates/' + self.address + '/generateMessage')
+
+                self.message = data.message
+                self.id = data.id
+                self.qrCode = encodeURI(
+                    'XinFin:sign?message=' + self.message +
+                    '&submitURL=' + data.url
+                )
+            }
+            self.step++
+            if (self.step === 2 && self.provider === 'XDCwallet') {
+                self.interval = setInterval(async () => {
+                    await this.verifyScannedQR()
+                }, 3000)
+            }
+        },
+        backStep () {
+            this.step--
+        },
+        copyTextArea () {
+            this.$refs.text.select()
+            document.execCommand('copy')
+        },
+        async updateCandidateInfo () {
+            let self = this
+            // calling update api
+            try {
+                const { data } = await axios.put(
+                    '/api/candidates/update',
+                    {
+                        candidate: self.address,
+                        name: self.name,
+                        hardware: self.hardware,
+                        dcName: self.dcName,
+                        dcLocation: self.dcLocation,
+                        message: self.message,
+                        signedMessage: self.signHash
+                    }
+                )
+                if (!data.error) {
+                    setTimeout(() => {
+                        self.$toasted.show('Candidate\'s information updated successfully ')
+                        self.loading = false
+                        self.signHashError = ''
+                        self.signHash = ''
+                        self.$router.push({ path: `/candidate/${self.address}` })
+                    }, 3000)
+                } else {
+                    self.loading = false
+                    self.signHashError = ''
+                    self.signHash = ''
+                    if (self.provider === 'XDCwallet') {
+                        self.signHashError = data.error.message
+                        return false
+                    } else {
+                        self.signHashError = ''
+                        self.$toasted.show(data.error.message, {
+                            type: 'error'
+                        })
+                    }
+                }
+            } catch (e) {
+                console.log(e)
+                self.loading = false
+                self.$toasted.show(`An error occurred while updating. ${String(e)}`, {
+                    type: 'error'
+                })
+            }
+        },
+        async verifyScannedQR () {
+            const self = this
+            try {
+                // 1. Get msg, signature
+                const signData = await axios.get(
+                    '/api/candidates/' + self.address + '/getSignature?id=' + self.id
+                )
+                if (!signData.data.error) {
+                    self.signHash = signData.data.signature
+                    // 2. Then call update func
+                    await self.updateCandidateInfo()
+                }
+            } catch (e) {
+                console.log(e)
+                self.$toasted.show(`An error occurred while updating. ${String(e)}`, {
+                    type: 'error'
+                })
+            }
+        }
+    }
+}
+</script>

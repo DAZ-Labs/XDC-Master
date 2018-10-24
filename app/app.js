@@ -7,6 +7,7 @@ import CandidateList from './components/candidates/List.vue'
 import CandidateApply from './components/candidates/Apply.vue'
 import CandidateResign from './components/candidates/Resign.vue'
 import CandidateWithdraw from './components/candidates/Withdraw.vue'
+import CandidateUpdate from './components/candidates/Update.vue'
 import VoterView from './components/voters/View'
 import VotingView from './components/voters/Voting'
 import UnvotingView from './components/voters/Unvoting'
@@ -29,6 +30,14 @@ import VueClipboards from 'vue-clipboards'
 import Vuex from 'vuex'
 import HDWalletProvider from 'truffle-hdwallet-provider'
 import localStorage from 'store'
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faEdit, faCopy } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+library.add(faEdit, faCopy)
+
+Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 Vue.use(BootstrapVue)
 Vue.use(VueClipboards)
@@ -182,6 +191,9 @@ const router = new VueRouter({
         },
         {
             path: '/candidate/:address', component: CandidateView
+        },
+        {
+            path: '/candidate/:address/update', component: CandidateUpdate
         },
         {
             path: '/voter/:address', component: VoterView
