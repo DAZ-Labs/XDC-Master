@@ -6,12 +6,6 @@
                     <div class="section-title">
                         <i class="tm-flag color-yellow" />
                         <span>{{ candidate.name }}</span>
-
-                        <router-link
-                            :to="'/candidate/' + candidate.address + '/update'"
-                            class="text-truncate">
-                            <font-awesome-icon icon="edit" />
-                        </router-link>
                         <span class="text-truncate section-title__description">{{ candidate.address }}</span>
                         <ul class="list-inline social-links">
                             <li
@@ -570,18 +564,14 @@ export default {
 
                 self.loading = true
                 // Get all information at the same time
-                const candidatePromise = axios.get(`/api/candidates/${address}`)
-                const voterPromise = axios.get(`/api/candidates/${address}/voters`)
-                const txPromise = axios.get(`/api/transactions/candidate/${address}`)
-                // const promises = await Promise.all([
-                //     await axios.get(`/api/candidates/${address}`),
-                //     await axios.get(`/api/candidates/${address}/voters`),
-                //     await axios.get(`/api/transactions/candidate/${address}`)
-                // ])
+                const promises = await Promise.all([
+                    await axios.get(`/api/candidates/${address}`),
+                    await axios.get(`/api/candidates/${address}/voters`),
+                    await axios.get(`/api/transactions/candidate/${address}`)
+                ])
 
                 // Get candidate's information
-                // let c = promises[0]
-                let c = await candidatePromise
+                let c = promises[0]
 
                 if (c.data) {
                     let data = c.data
@@ -612,8 +602,7 @@ export default {
                 }
 
                 // Voter table
-                // let voters = promises[1]
-                let voters = await voterPromise
+                let voters = promises[1]
 
                 let youVoted = new BigNumber(0)
                 voters.data.map((v, idx) => {
@@ -640,8 +629,7 @@ export default {
                 self.voterTotalRows = self.voters.length
 
                 // Get transaction table
-                // let txs = promises[2]
-                let txs = await txPromise
+                let txs = promises[2]
 
                 txs.data.map((tx, idx) => {
                     self.transactions.push({
