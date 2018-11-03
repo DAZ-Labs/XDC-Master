@@ -632,7 +632,7 @@ export default {
 
                 if (self.account && self.web3) {
                     try {
-                        let contract = await self.XDCValidator.deployed()
+                        let contract = await self.getXDCValidatorInstance()
                         youVoted = await contract.getVoterCap(address, self.account)
                         self.candidate.cap = await contract.getCandidateCap(address).div(1e18).toNumber()
                     } catch (e) {}
@@ -668,8 +668,8 @@ export default {
                         epoch: r.epoch,
                         signNumber: r.signNumber,
                         reward: new BigNumber(r.reward).toFixed(6),
-                        createdAt: moment(r.createdAt).fromNow(),
-                        dateTooltip: moment(r.createdAt).format('lll')
+                        createdAt: moment(r.rewardTime).fromNow(),
+                        dateTooltip: moment(r.rewardTime).format('lll')
                     })
                 })
 

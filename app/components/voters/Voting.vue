@@ -59,6 +59,9 @@
                                 <span
                                     v-else-if="$v.voteValue.$dirty && !$v.voteValue.minValue"
                                     class="text-danger">Must be greater than 10 XDC</span>
+                                <span
+                                    v-if="votingError"
+                                    class="text-danger">Not enough XDC</span>
                             </b-input-group>
                         </b-form-group>
                         <div class="buttons text-right">
@@ -181,7 +184,8 @@ export default {
             id: '',
             interval: null,
             balance: 0,
-            provider: this.NetworkProvider || store.get('network') || null
+            provider: this.NetworkProvider || store.get('network') || null,
+            votingError: false
         }
     },
     validations: {
@@ -256,7 +260,12 @@ export default {
             this.$v.$touch()
 
             if (!this.$v.$invalid) {
-                this.nextStep()
+                if (this.voteValue > this.balance) {
+                    this.votingError = true
+                } else {
+                    this.votingError = false
+                    this.nextStep()
+                }
             }
         },
         vote: async function () {
@@ -267,19 +276,43 @@ export default {
                     self.$router.push({ path: '/setting' })
                     throw Error('Web3 is not properly detected.')
                 }
-
                 self.loading = true
-
                 let account = await self.getAccount()
                 account = account.toLowerCase()
-                let contract = await self.XDCValidator.deployed()
-                let rs = await contract.vote(self.candidate, {
+                let contract = await self.getXDCValidatorInstance()
+                let txParams = {
                     from: account,
                     value: new BigNumber(this.voteValue).multipliedBy(10 ** 18).toNumber(),
                     gasPrice: 2500,
                     gas: 1000000
-                })
+                }
+                let rs
+                if (self.NetworkProvider === 'ledger') {
+                    // check if network provider is hardware wallet
+                    // sign transaction using hardwarewallet before sending to chain
 
+                    // https://bit.ly/2KEXzQe
+                    // signing and sending processes
+                    //
+                    //
+                    // login device
+                    // sign transaction with function and parameter to get signature
+                    // attach txParams and signature then sendSignedTransaction
+                    let nonce = await self.web3.eth.getTransactionCount(account)
+                    let dataTx = contract.vote.request(self.candidate).params[0]
+                    Object.assign(
+                        dataTx,
+                        dataTx,
+                        txParams,
+                        {
+                            nonce: self.web3.utils.toHex(nonce)
+                        }
+                    )
+                    let signature = await self.signTransaction(dataTx)
+                    rs = await self.sendSignedTransaction(dataTx, signature)
+                } else {
+                    rs = await contract.vote(self.candidate, txParams)
+                }
                 let toastMessage = rs.tx ? 'You have successfully voted!'
                     : 'An error occurred while voting, please try again'
                 self.$toasted.show(toastMessage)
@@ -322,7 +355,7 @@ export default {
             self.qrCode = encodeURI(
                 'XinFin:vote?amount=' + self.voteValue + '&' + 'candidate=' + self.candidate +
                 '&name=' + generatedMess.data.candidateName +
-                '&submitURL=' + generatedMess.data.url + generatedMess.data.id
+                '&submitURL=' + generatedMess.data.url
             )
             self.step++
 

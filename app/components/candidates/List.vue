@@ -200,7 +200,7 @@ export default {
 
         try {
             if (self.isReady) {
-                let contract = await self.XDCValidator.deployed()
+                let contract = await self.getXDCValidatorInstance()
                 if (store.get('address')) {
                     account = store.get('address').toLowerCase()
                 } else {
@@ -244,7 +244,7 @@ export default {
     mounted () { },
     methods: {
         watch: async function () {
-            let contract = await self.XDCValidator.deployed()
+            let contract = await self.getXDCValidatorInstance()
             const allEvents = contract.allEvents({
                 fromBlock: self.blockNumber,
                 toBlock: 'latest'
