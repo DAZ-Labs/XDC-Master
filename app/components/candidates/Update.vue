@@ -20,7 +20,7 @@
                             v-model="name"
                             name="name-value"/>
                         <span
-                            v-if="$v.name.$dirty && !$v.name.requried"
+                            v-if="$v.name.$dirty && !$v.name.required"
                             class="text-danger">Name is required</span>
                         <span
                             v-if="$v.name.$dirty && (!$v.name.minLength || !$v.name.maxLength)"
@@ -139,6 +139,7 @@
                                         v-model="signHash"
                                         class="form-control"
                                         type="text"
+                                        autocomplete="false"
                                         style="box-sizing: border-box; width: 100%"
                                         placeholder="Enter the message signature hash">
                                     <span
@@ -359,12 +360,14 @@ export default {
                     body
                 )
                 if (!data.error) {
+                    self.loading = true
                     setTimeout(() => {
-                        self.$toasted.show('Candidate\'s information updated successfully ')
                         self.loading = false
                         self.signHashError = ''
                         self.signHash = ''
-                        self.$router.push({ path: `/candidate/${self.address}` })
+                        self.$router.push({ path: `/candidate/${self.address}` }, () => {
+                            self.$toasted.show('Candidate\'s information updated successfully ')
+                        })
                     }, 3000)
                 } else {
                     self.loading = false

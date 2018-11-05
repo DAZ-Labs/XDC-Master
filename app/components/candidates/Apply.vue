@@ -58,6 +58,7 @@
                             :class="getValidationClass('coinbase')"
                             v-model="coinbase"
                             name="coinbase"
+                            autocomplete="false"
                             type="text"/>
                         <span
                             v-if="$v.coinbase.$dirty && !$v.coinbase.required"
@@ -67,7 +68,9 @@
                             class="text-danger">Wrong coinbase address format</span>
                         <span
                             v-else-if="coinbaseError"
-                            class="text-danger">Your account address cannot same with coinbase address</span>
+                            class="text-danger">
+                            The masternode candidate account should bedifferent from the depositing account.
+                        </span>
                     </b-form-group>
                     <!--b-form-group
                         label="Node URL"
@@ -97,6 +100,26 @@
                 </b-form>
             </b-card>
         </b-row>
+        <b-modal
+            ref="applyModal"
+            class="XDC-modal"
+            centered
+            title="Scan this QR code by XDCWallet"
+            hide-footer>
+            <div
+                v-if="provider === 'XDCwallet'"
+                style="text-align: center">
+                <vue-qrcode
+                    :value="qrCode"
+                    :options="{size: 200 }"
+                    class="img-fluid text-center text-lg-right"/>
+            </div>
+            <b-btn
+                class="mt-3"
+                variant="outline-danger"
+                block
+                @click="hideModal">Close</b-btn>
+        </b-modal>
     </div>
 </template>
 <script>
@@ -109,11 +132,14 @@ import coinbaseAddress from '../../../validators/coinbaseAddress.js'
 // import nodeUrl from '../../../validators/nodeUrl.js'
 import NumberInput from '../NumberInput.vue'
 import store from 'store'
+import VueQrcode from '@chenfengyuan/vue-qrcode'
+import axios from 'axios'
 
 export default {
     name: 'App',
     components: {
-        NumberInput
+        NumberInput,
+        VueQrcode
     },
     mixins: [validationMixin],
     data () {
@@ -124,7 +150,11 @@ export default {
             coinbase: '',
             // nodeUrl: '',
             loading: false,
-            coinbaseError: false
+            coinbaseError: false,
+            provider: this.NetworkProvider || store.get('network') || null,
+            showQR: true,
+            qrCode: 't1111111111111111111111111111ext',
+            interval: null
         }
     },
     validations: {
@@ -146,6 +176,11 @@ export default {
     computed: { },
     watch: {},
     updated () {},
+    beforeDestroy () {
+        if (this.interval) {
+            clearInterval(this.interval)
+        }
+    },
     created: async function () {
         let self = this
         let account
@@ -194,7 +229,15 @@ export default {
             this.$v.$touch()
 
             if (!this.$v.$invalid) {
-                this.apply()
+                if (this.provider !== 'XDCwallet') {
+                    this.apply()
+                } else {
+                    if (this.interval) {
+                        clearInterval(this.interval)
+                    }
+                    this.generateQR()
+                    this.$refs.applyModal.show()
+                }
             }
         },
         apply: async function () {
@@ -256,6 +299,70 @@ export default {
                     type: 'error'
                 })
                 console.log(e)
+                if (self.interval) {
+                    clearInterval(self.interval)
+                }
+            }
+        },
+        hideModal () {
+            this.$refs.applyModal.hide()
+        },
+        async generateQR () {
+            const self = this
+            const coinbase = self.coinbase.toLowerCase()
+            try {
+                const body = {
+                    action: 'propose',
+                    voter: self.account.toLowerCase(),
+                    candidate: coinbase,
+                    amount: self.applyValue
+                }
+                // call api to generate qr code
+                const { data } = await axios.post(`/api/voters/generateQR`, body)
+
+                self.message = data.message
+                self.id = data.id
+                self.qrCode = encodeURI(
+                    'XinFin:propose?amount=' + self.applyValue +
+                    '&candidate=' + coinbase +
+                    '&submitURL=' + data.url
+                )
+                // set interval
+                self.interval = setInterval(async () => {
+                    self.verifyScannedQR()
+                }, 3000)
+            } catch (e) {
+                console.log(e)
+            }
+        },
+        async verifyScannedQR () {
+            let self = this
+            let coinbase = this.coinbase.toLowerCase()
+            try {
+                let { data } = await axios.get('/api/voters/getScanningResult?action=propose&id=' + self.id)
+
+                if (!data.error) {
+                    self.loading = true
+                    if (data.tx) {
+                        let toastMessage = data.tx ? 'You have successfully applied!'
+                            : 'An error occurred while applying, please try again'
+                        self.$toasted.show(toastMessage)
+                        self.hideModal()
+                        clearInterval(self.interval)
+                        setTimeout(() => {
+                            if (data.tx) {
+                                self.loading = false
+                                self.$router.push({ path: `/candidate/${coinbase}` })
+                            }
+                        }, 3000)
+                    }
+                }
+            } catch (e) {
+                console.log(e)
+                self.$toasted.show(`An error occurred while excuting. ${String(e)}`, {
+                    type: 'error'
+                })
+                clearInterval(self.interval)
             }
         }
     }

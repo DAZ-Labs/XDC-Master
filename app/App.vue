@@ -11,6 +11,7 @@
                         <b-form-input
                             v-model="search"
                             type="text"
+                            autocomplete="false"
                             placeholder="Search Candidate / Voter address ..."
                             @keyup.enter="searchCandidate"
                         />
@@ -42,6 +43,92 @@
             <div class="main-content">
                 <router-view/>
             </div>
+            <footer
+                class="XDC-footer mt-2">
+                <div class="container">
+                    <div
+                        class="row">
+                        <b-col class="float-left">
+                            <p>
+                                XDCMaster 2018 - Running on XinFin
+                            </p>
+                        </b-col>
+                        <b-col>
+                            <div
+                                style="text-align: right">
+                                <ul class="list-inline XDC-footer__social">
+                                    <li class="list-inline-item">
+                                        <a
+                                            href="https://t.me/XinFin"
+                                            target="_blank">
+                                            <font-awesome-icon
+                                                id="telegram"
+                                                :icon="{ prefix: 'fab', iconName: 'telegram' }"
+                                                class="fa-2x"/>
+                                        </a>
+                                    </li>
+                                    <li class="list-inline-item">
+                                        <a
+                                            href="https://www.facebook.com/XinFinofficial"
+                                            target="_blank">
+                                            <font-awesome-icon
+                                                :icon="{ prefix: 'fab', iconName: 'facebook' }"
+                                                class="fa-2x"/>
+                                        </a>
+                                    </li>
+                                    <li class="list-inline-item">
+                                        <a
+                                            href="https://twitter.com/XinFinANN"
+                                            target="_blank">
+                                            <font-awesome-icon
+                                                :icon="{ prefix: 'fab', iconName: 'twitter' }"
+                                                class="fa-2x"/>
+                                        </a>
+                                    </li>
+                                    <li class="list-inline-item">
+                                        <a
+                                            href="https://github.com/XinFin/"
+                                            target="_blank">
+                                            <font-awesome-icon
+                                                :icon="{ prefix: 'fab', iconName: 'github' }"
+                                                class="fa-2x"/>
+                                        </a>
+                                    </li>
+                                    <li class="list-inline-item">
+                                        <a
+                                            href="https://www.reddit.com/r/XinFin/"
+                                            target="_blank">
+                                            <font-awesome-icon
+                                                :icon="{ prefix: 'fab', iconName: 'reddit' }"
+                                                class="fa-2x"/>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </b-col>
+                        <b-col>
+                            <div
+                                class="float-right footer-right">
+                                <a
+                                    target="_blank"
+                                    href="https://bit.ly/2B6p29o">
+                                    <font-awesome-icon
+                                        id="question-circle"
+                                        :icon="{ prefix: 'fas', iconName: 'question-circle' }"
+                                        style="font-size: 15px"
+                                        class="mr-1"/>
+                                    Need help?</a>
+                                <a
+                                    target="_blank"
+                                    href="/privacyPolicy"><i class="tm-lock mr-2"/>Privacy Policy</a>
+                                <a
+                                    target="_blank"
+                                    href="/terms"><i class="tm-profile mr-2"/>Terms of Service</a>
+                            </div>
+                        </b-col>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 </template>

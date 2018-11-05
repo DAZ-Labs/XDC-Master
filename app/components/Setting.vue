@@ -59,6 +59,7 @@
                         <b-form-input
                             :class="getValidationClass('mnemonic')"
                             v-model="mnemonic"
+                            autocomplete="false"
                             type="text" />
                         <span
                             v-if="$v.mnemonic.$dirty && !$v.mnemonic.required"
@@ -237,6 +238,7 @@
                                         :value="index"
                                         name="hdWallet"
                                         type="radio"
+                                        autocomplete="false"
                                         style="width: 5%; float: left" >
                                     <div style="width: 70%; float: left">
                                         {{ hdwallet.address }}
@@ -357,6 +359,7 @@ export default {
         self.setupAccount = async () => {
             let contract
             let account
+            self.address = ''
             try {
                 if (!self.web3 && self.NetworkProvider === 'metamask') {
                     throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
@@ -389,9 +392,12 @@ export default {
                         console.log('got an error', a)
                     }
                 })
+                let whPromise = axios.get(`/api/owners/${self.address}/withdraws`)
                 if (contract) {
-                    let blks = await contract.getWithdrawBlockNumbers.call({ from: account })
+                    let blksPromise = contract.getWithdrawBlockNumbers.call({ from: account })
+                    // let blks = await contract.getWithdrawBlockNumbers.call({ from: account })
 
+                    const blks = await blksPromise
                     await Promise.all(blks.map(async (it, index) => {
                         let blk = new BigNumber(it).toString()
                         if (blk !== '0') {
@@ -410,7 +416,9 @@ export default {
                     }))
                 }
 
-                let wh = await axios.get(`/api/owners/${self.address}/withdraws`)
+                const wh = await whPromise
+
+                // let wh = await axios.get(`/api/owners/${self.address}/withdraws`)
                 self.wh = []
                 wh.data.forEach(w => {
                     let it = {
@@ -483,6 +491,8 @@ export default {
         save: async function () {
             store.clearAll()
             const self = this
+            self.address = ''
+            self.$store.state.walletLoggedIn = null
             // clear old data
             self.withdraws = []
             self.aw = []
@@ -529,7 +539,15 @@ export default {
 
                 store.set('address', self.address.toLowerCase())
                 store.set('network', self.provider)
-                self.$toasted.show('Network Provider was changed successfully')
+                if (self.address) {
+                    self.$toasted.show('Network Provider was changed successfully')
+                } else {
+                    self.$toasted.show(
+                        'Couldn\'t get any accounts! Make sure ' +
+                        'your Ethereum client is configured correctly.', {
+                            type : 'error'
+                        })
+                }
             } catch (e) {
                 self.loading = false
                 self.$toasted.show('There are some errors when changing the network provider', {

@@ -10,5 +10,6 @@
     "db": {
         "uri" : "mongodb://XDCmaster_db:27017/governance"
     },
-    "grafanaUrl": "https://grafana.devnet.XinFin.com"
+    "grafanaUrl": "https://grafana.devnet.XinFin.com",
+    "grafanaApiKey": "eyJrIjoiVlhBUUo2SnRxek50VGdtMmlMZlo2ZlZYaTNKaGpXMjciLCJuIjoidG9tb21hc3RlcjIiLCJpZCI6MX0="
 }
