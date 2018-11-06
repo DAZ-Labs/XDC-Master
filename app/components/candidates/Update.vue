@@ -360,14 +360,12 @@ export default {
                     body
                 )
                 if (!data.error) {
-                    self.loading = true
                     setTimeout(() => {
+                        self.$toasted.show('Candidate\'s information updated successfully ')
                         self.loading = false
                         self.signHashError = ''
                         self.signHash = ''
-                        self.$router.push({ path: `/candidate/${self.address}` }, () => {
-                            self.$toasted.show('Candidate\'s information updated successfully ')
-                        })
+                        self.$router.push({ path: `/candidate/${self.address}` })
                     }, 3000)
                 } else {
                     self.loading = false

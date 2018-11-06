@@ -100,8 +100,6 @@ router.post('/generateQR', async (req, res, next) => {
             { upsert: true, new: true }
         )
 
-        const id = uuidv4()
-
         res.send({
             candidateName: candidateName,
             message,
@@ -118,35 +116,38 @@ router.post('/generateQR', async (req, res, next) => {
     }
 })
 
-router.post('/verifyTx', [
-    check('action').isLength({ min: 1 }).withMessage('action is required'),
-    check('signer').isLength({ min: 1 }).withMessage('signer is required'),
-    check('amount').isLength({ min: 1 }).withMessage('amount is required')
-        .isInt().withMessage('amount must be a number'),
-    check('rawTx').isLength({ min: 1 }).withMessage('rawTx is required')
-], async (req, res, next) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-        return next(errors.array())
-    }
+router.post('/verifyTx', async (req, res, next) => {
     try {
         const id = req.query.id
         const action = req.body.action
         let signer = req.body.signer
         let candidate = req.body.candidate || ''
-        const amount = !isNaN(req.body.amount) ? parseInt(req.body.amount) : undefined
+        const amount = parseFloat(req.body.amount.replace(/,/g, '')) || undefined
         const serializedTx = req.body.rawTx
+
         if (!id) {
-            res.status(406).send('id is required')
+            return res.status(406).send()
+        }
+        if (!action) {
+            return res.status(406).send('action is requried')
+        }
+        if (!signer) {
+            return res.status(406).send('signer is requried')
+        }
+        if (!amount) {
+            return res.status(406).send('amount is requried')
+        }
+        if (!serializedTx) {
+            return res.status(406).send('raw transaction hash(rawTx) is requried')
         }
         if (action !== 'withdraw') {
             if (!candidate) {
-                res.status(406).send('candidate is required')
+                return res.status(406).send('candidate is requried')
             }
         }
         const checkId = await db.SignTransaction.findOne({ signId: id })
         if (checkId && !checkId.status) {
-            res.status(406).send('Cannot use a QR code twice')
+            return res.status(406).send('Cannot use a QR code twice')
         }
 
         let signedAddress = '0x' + new EthereumTx(serializedTx).getSenderAddress().toString('hex')
@@ -161,14 +162,21 @@ router.post('/verifyTx', [
 
         await web3.eth.sendSignedTransaction(serializedTx, async (error, hash) => {
             if (error) {
-                if (action === 'vote' || action === 'propose') {
+                if (action === 'vote') {
                     web3.eth.getBalance(signedAddress, function (e, balance) {
-                        if (!e) {
-                            if (new BigNumber(balance).div(10 ** 18) < amount) {
-                                return res.status(406).send('Not enough XDC')
-                            } else {
-                                return res.status(404).send('Something went wrong')
+                        try {
+                            if (!e) {
+                                const convertedBalanc = new BigNumber(balance).div(10 ** 18)
+                                const convertedAmount = new BigNumber(amount)
+
+                                if (convertedBalanc.isLessThan(convertedAmount)) {
+                                    return res.status(406).send('Not enough XDC')
+                                } else {
+                                    return res.status(404).send('Something went wrong')
+                                }
                             }
+                        } catch (error) {
+                            throw error
                         }
                     })
                 }
@@ -191,7 +199,7 @@ router.post('/verifyTx', [
                     sign,
                     { upsert: true, new: true }
                 )
-                res.send({
+                return res.send({
                     status: 'Done',
                     transactionHash: hash
                 })
@@ -220,7 +228,7 @@ router.get('/getScanningResult',
                         tx: signTx.tx
                     })
                 } else {
-                    res.send('Scanned, getting transaction hash')
+                    res.send('Scanned')
                 }
             } else {
                 res.send({

@@ -85,9 +85,6 @@ router.get('/:candidate/voters', async function (req, res, next) {
 })
 
 router.get('/:candidate/rewards', async function (req, res, next) {
-    console.log(`
-    
-    ${JSON.stringify(req.query)}`)
     const limit = (req.query.limit) ? parseInt(req.query.limit) : 100
     const skip = (req.query.page) ? limit * (req.query.page - 1) : 0
     let rewards = await db.MnReward.find({
@@ -306,7 +303,7 @@ router.get('/:candidate/:owner/getRewards', async function (req, res, next) {
                 reason: 'MasterNode'
             }
         )
-        res.json(rewards.data)
+        return res.json(rewards.data)
     } catch (e) {
         return next(e)
     }
@@ -393,7 +390,7 @@ router.post('/:candidate/generateMessage', async function (req, res, next) {
         }
         await db.Signature.findOneAndUpdate({ signedAddress: account }, data, { upsert: true, new: true })
 
-        res.json({
+        return res.json({
             message,
             url: `${config.get('baseUrl')}api/candidates/verifyScannedQR?id=${id}`,
             id
@@ -434,7 +431,7 @@ router.post('/verifyScannedQR', async (req, res, next) => {
         data.status = false
 
         await db.Signature.findOneAndUpdate({ signedAddress: signedAddress }, data, { upsert: true, new: true })
-        res.send('Done')
+        return res.send('Done')
     } catch (e) {
         console.trace(e)
         console.log(e)
@@ -445,16 +442,15 @@ router.post('/verifyScannedQR', async (req, res, next) => {
 router.get('/:candidate/getSignature', async (req, res, next) => {
     try {
         const messId = req.query.id || ''
-        const candidate = (req.params.candidate || '').toLowerCase()
 
         const signature = await db.Signature.findOne({ signedId: messId })
 
-        if (signature && candidate === signature.signedAddress.toLowerCase()) {
-            res.json({
+        if (signature && !signature.status) {
+            return res.json({
                 signature: signature.signature
             })
         } else {
-            res.send({
+            return res.send({
                 error: {
                     message: 'No data'
                 }

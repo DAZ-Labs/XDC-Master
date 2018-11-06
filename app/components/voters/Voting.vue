@@ -359,7 +359,7 @@ export default {
             )
             self.step++
 
-            if (self.step === 2 && self.processing && self.provider === 'XDCwallet') {
+            if (self.step === 2 && self.processing && self.NetworkProvider === 'XDCwallet') {
                 self.interval = setInterval(async () => {
                     await this.verifyScannedQR()
                 }, 3000)
