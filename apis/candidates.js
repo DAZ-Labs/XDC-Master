@@ -12,6 +12,7 @@ const _ = require('lodash')
 const logger = require('../helpers/logger')
 const { check, validationResult } = require('express-validator/check')
 const uuidv4 = require('uuid/v4')
+const urljoin = require('url-join')
 
 router.get('/', async function (req, res, next) {
     const limit = (req.query.limit) ? parseInt(req.query.limit) : 200
@@ -85,6 +86,9 @@ router.get('/:candidate/voters', async function (req, res, next) {
 })
 
 router.get('/:candidate/rewards', async function (req, res, next) {
+    console.log(`
+    
+    ${JSON.stringify(req.query)}`)
     const limit = (req.query.limit) ? parseInt(req.query.limit) : 100
     const skip = (req.query.page) ? limit * (req.query.page - 1) : 0
     let rewards = await db.MnReward.find({
@@ -295,7 +299,7 @@ router.get('/:candidate/:owner/getRewards', async function (req, res, next) {
         const owner = req.params.owner
         const limit = 100
         const rewards = await axios.post(
-            `${config.get('XDCscanUrl')}/api/expose/rewards`,
+            urljoin(config.get('XDCscanUrl'), 'api/expose/rewards'),
             {
                 address: candidate,
                 limit,
@@ -392,7 +396,7 @@ router.post('/:candidate/generateMessage', async function (req, res, next) {
 
         return res.json({
             message,
-            url: `${config.get('baseUrl')}api/candidates/verifyScannedQR?id=${id}`,
+            url: urljoin(config.get('baseUrl'), `api/candidates/verifyScannedQR?id=${id}`),
             id
         })
     } catch (error) {
@@ -442,10 +446,11 @@ router.post('/verifyScannedQR', async (req, res, next) => {
 router.get('/:candidate/getSignature', async (req, res, next) => {
     try {
         const messId = req.query.id || ''
+        const candidate = (req.params.candidate || '').toLowerCase()
 
         const signature = await db.Signature.findOne({ signedId: messId })
 
-        if (signature && !signature.status) {
+        if (signature && !signature.status && candidate === signature.signedAddress.toLowerCase()) {
             return res.json({
                 signature: signature.signature
             })
