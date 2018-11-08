@@ -535,14 +535,14 @@ export default {
         self.isReady = !!self.web3
         try {
             if (self.isReady) {
-                let contract = self.XDCValidator.deployed()
+                let contract = await self.XDCValidator.deployed()
                 if (store.get('address')) {
                     self.account = store.get('address').toLowerCase()
                 } else {
                     self.account = this.$store.state.walletLoggedIn
-                        ? this.$store.state.walletLoggedIn : self.getAccount()
+                        ? this.$store.state.walletLoggedIn : await self.getAccount()
                 }
-                if (await self.account && await contract) {
+                if (self.account && contract) {
                     self.isXDCnet = true
                 }
             }
@@ -576,8 +576,14 @@ export default {
                 const candidatePromise = axios.get(`/api/candidates/${address}`)
                 const voterPromise = axios.get(`/api/candidates/${address}/voters`)
                 const txPromise = axios.get(`/api/transactions/candidate/${address}`)
+                // const promises = await Promise.all([
+                //     await axios.get(`/api/candidates/${address}`),
+                //     await axios.get(`/api/candidates/${address}/voters`),
+                //     await axios.get(`/api/transactions/candidate/${address}`)
+                // ])
 
                 // Get candidate's information
+                // let c = promises[0]
                 let c = await candidatePromise
 
                 if (c.data) {
@@ -609,6 +615,7 @@ export default {
                 }
 
                 // Voter table
+                // let voters = promises[1]
                 let voters = await voterPromise
 
                 let youVoted = new BigNumber(0)
@@ -636,6 +643,7 @@ export default {
                 self.voterTotalRows = self.voters.length
 
                 // Get transaction table
+                // let txs = promises[2]
                 let txs = await txPromise
 
                 txs.data.map((tx, idx) => {
