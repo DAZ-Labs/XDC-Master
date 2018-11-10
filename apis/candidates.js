@@ -432,6 +432,7 @@ router.post('/verifyScannedQR', async (req, res, next) => {
         data.status = false
 
         await db.Signature.findOneAndUpdate({ signedAddress: signedAddress }, data, { upsert: true, new: true })
+
         return res.send('Done')
     } catch (e) {
         console.trace(e)

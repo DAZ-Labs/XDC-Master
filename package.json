@@ -1,6 +1,6 @@
 {
     "name": "XDCmaster",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "XinFin Governance DApp",
     "main": "elect.js",
     "scripts": {
