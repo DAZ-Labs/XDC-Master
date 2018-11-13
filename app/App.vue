@@ -35,8 +35,18 @@
 
                         <router-link
                             v-if="isXDCnet"
-                            id="btn-setting"
-                            to="/setting"><i class="tm-dots color-btn-bg"/>Setting</router-link>
+                            to="/setting">
+                            <font-awesome-icon
+                                :icon="{ prefix: 'fas', iconName: 'user-circle' }"
+                                class="fa-2x ml-1"
+                                style="color: #678be0" />
+                        </router-link>
+
+                        <!-- <router-link
+                        v-if="isXDCnet"
+                        id="btn-setting"
+                        to="/setting">
+                        <i class="tm-dots color-btn-bg"/>Setting</router-link> -->
                     </div>
                 </div>
             </b-navbar>
@@ -50,7 +60,10 @@
                         class="row">
                         <b-col class="float-left">
                             <p>
-                                XDCMaster 2018 - Running on XinFin
+                                XDCMaster {{ (new Date()).getFullYear() }} -
+                                <a
+                                    :href="`https://github.com/XinFin/XDCmaster/releases/tag/v${version}`">
+                                    v{{ version }}</a>
                             </p>
                         </b-col>
                         <b-col>
@@ -136,6 +149,7 @@
 <script>
 import axios from 'axios'
 import store from 'store'
+import pkg from '../package.json'
 export default {
     name: 'App',
     data () {
@@ -144,7 +158,8 @@ export default {
             showProgressBar: false,
             selectedCandidate: null,
             search: null,
-            isXDCnet: false
+            isXDCnet: false,
+            version: pkg.version
         }
     },
     async updated () {
@@ -157,7 +172,9 @@ export default {
             if (!self.isReady && self.NetworkProvider === 'metamask') {
                 throw Error('Web3 is not properly detected. Have you installed MetaMask extension?')
             }
-            await self.checkNetworkAndLogin()
+            self.$bus.$on('logged', async () => {
+                await self.checkNetworkAndLogin()
+            })
         } catch (e) {
             console.log(e)
         }

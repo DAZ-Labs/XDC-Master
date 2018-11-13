@@ -336,12 +336,17 @@ export default {
             const self = this
             const coinbase = self.coinbase.toLowerCase()
 
+            if (self.interval) {
+                clearInterval(self.interval)
+            }
+
             try {
+                const amount = new BigNumber(self.applyValue).toString(10)
                 const body = {
                     action: 'propose',
                     voter: self.account.toLowerCase(),
                     candidate: coinbase,
-                    amount: self.applyValue
+                    amount
                 }
                 // call api to generate qr code
                 const { data } = await axios.post(`/api/voters/generateQR`, body)
@@ -349,7 +354,7 @@ export default {
                 self.message = data.message
                 self.id = data.id
                 self.qrCode = encodeURI(
-                    'XinFin:propose?amount=' + self.applyValue +
+                    'XinFin:propose?amount=' + amount +
                     '&candidate=' + coinbase +
                     '&submitURL=' + data.url
                 )
@@ -372,10 +377,10 @@ export default {
                     self.hideModal()
                     self.loading = true
                     if (data.tx) {
+                        clearInterval(self.interval)
                         let toastMessage = data.tx ? 'You have successfully applied!'
                             : 'An error occurred while applying, please try again'
                         self.$toasted.show(toastMessage)
-                        clearInterval(self.interval)
                         setTimeout(() => {
                             if (data.tx) {
                                 self.loading = false

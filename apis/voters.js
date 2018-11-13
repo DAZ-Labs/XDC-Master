@@ -103,7 +103,7 @@ router.post('/generateQR', async (req, res, next) => {
 
         res.send({
             candidateName: candidateName,
-            message,
+            message: (action === 'resign') ? '' : message,
             url: urljoin(config.get('baseUrl'), `api/voters/verifyTx?id=${id}`),
             id
         })
@@ -120,7 +120,6 @@ router.post('/generateQR', async (req, res, next) => {
 router.post('/verifyTx', [
     check('action').isLength({ min: 1 }).withMessage('action is required'),
     check('signer').isLength({ min: 1 }).withMessage('signer is required'),
-    check('amount').isLength({ min: 1 }).withMessage('amount is required'),
     check('rawTx').isLength({ min: 1 }).withMessage('rawTx is required')
 ], async (req, res, next) => {
     const errors = validationResult(req)
@@ -132,21 +131,28 @@ router.post('/verifyTx', [
         const action = req.body.action
         let signer = req.body.signer
         let candidate = req.body.candidate || ''
-        const amount = parseFloat(req.body.amount.replace(/,/g, '')) || undefined
+        const amount = (req.body.amount)
+            ? new BigNumber(req.body.amount.replace(/,/g, '')).toString(10)
+            : undefined
         const serializedTx = req.body.rawTx
 
         if (!id) {
             return res.status(406).send('id is required')
         }
         if (!amount) {
-            return res.status(406).send('amount is required')
-        }
-        if (action !== 'withdraw') {
-            if (!candidate) {
-                return res.status(406).send('candidate is required')
+            if (action !== 'resign') {
+                return res.status(406).send('amount is required')
             }
         }
         const checkId = await db.SignTransaction.findOne({ signId: id })
+
+        if (action !== 'withdraw' && action !== 'resign') {
+            if (!candidate) {
+                return res.status(406).send('candidate is required')
+            }
+        } else if (checkId && checkId.candidate !== candidate) {
+            return res.status(406).send('candidate is not match')
+        }
         if (checkId && !checkId.status) {
             return res.status(406).send('Cannot use a QR code twice')
         }
@@ -154,7 +160,6 @@ router.post('/verifyTx', [
         if (checkId && (action !== checkId.action || id !== checkId.signId)) {
             return res.status(406).send('Wrong action')
         }
-
         let signedAddress = '0x' + new EthereumTx(serializedTx).getSenderAddress().toString('hex')
 
         signedAddress = signedAddress.toLowerCase()
@@ -163,6 +168,12 @@ router.post('/verifyTx', [
 
         if (signedAddress !== signer || signedAddress !== checkId.signedAddress) {
             return res.status(406).send('Signed Address and signer are not match')
+        }
+
+        if (action === 'vote' || action === 'unvote' || action === 'withdraw' || action === 'propose') {
+            if (checkId.amount !== amount) {
+                return res.status(406).send('Amount is not match')
+            }
         }
 
         web3.eth.sendSignedTransaction(serializedTx, async (error, hash) => {
