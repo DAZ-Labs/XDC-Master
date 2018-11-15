@@ -1,4 +1,7 @@
 {
+    "logs": {
+        "level": "warn"
+    },
     "blockchain": {
         "rpc": "https://rpc.XinFin.com",
         "ws": "wss://ws.XinFin.com",

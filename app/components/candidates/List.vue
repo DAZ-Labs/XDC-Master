@@ -179,7 +179,7 @@ export default {
             voteItem: {},
             candidates: [],
             currentPage: 1,
-            perPage: 10,
+            perPage: 50,
             totalRows: 0,
             tableCssClass: '',
             loading: false,
@@ -199,10 +199,10 @@ export default {
     updated () {},
     created: async function () {
         let self = this
-        let config = await self.appConfig()
         let account
-        self.chainConfig = config.blockchain
         self.isReady = !!self.web3
+        let config = await self.appConfig()
+        self.chainConfig = config.blockchain
 
         try {
             if (self.isReady) {
