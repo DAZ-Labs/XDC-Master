@@ -52,7 +52,10 @@
                                 <li class="XDC-list__item">
                                     <i class="tm-XDC XDC-list__icon" />
                                     <p class="XDC-list__text">
-                                        <span> {{ formatCurrencySymbol(formatNumber(voted)) }}</span>
+                                        <span> {{ formatCurrencySymbol(formatNumber(voted)) }}
+                                            - <a
+                                                href="javascript:"
+                                                @click="unvoteAll">All</a></span>
                                         <span>You voted</span>
                                     </p>
                                 </li>
@@ -429,6 +432,9 @@ export default {
                 return false
             }
             return true
+        },
+        unvoteAll () {
+            this.unvoteValue = this.voted.toString()
         }
     }
 }
