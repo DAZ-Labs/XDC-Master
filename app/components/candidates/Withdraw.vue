@@ -9,7 +9,7 @@
                     <b-card
                         :class="'col-12 col-md-8 col-lg-6 XDC-card XDC-card--animated p-0'
                         + (loading ? ' XDC-loading' : '')">
-                        <h4 class=" color-white XDC-card__title XDC-card__title--big">Withdrawal Confirmation</h4>
+                        <h4 class=" color-white XDC-card__title XDC-card__title--big">Withdrawal</h4>
 
                         <ul class="XDC-list list-unstyled">
                             <li class="XDC-list__item">

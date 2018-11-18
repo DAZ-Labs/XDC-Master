@@ -124,8 +124,7 @@
                 :per-page="perPage"
                 v-model="currentPage"
                 align="center"
-                class="XDC-pagination"
-                @change="pageChange"/>
+                class="XDC-pagination" />
         </div>
     </div>
 </template>
@@ -180,7 +179,7 @@ export default {
             voteValue: 1,
             voteItem: {},
             candidates: [],
-            currentPage: this.$store.state.currentPage || 1,
+            currentPage: 1,
             perPage: 50,
             totalRows: 0,
             tableCssClass: '',
@@ -197,11 +196,7 @@ export default {
             })
         }
     },
-    watch: {
-        currentPage: function (val) {
-            this.currentPage = this.$store.state.currentPage
-        }
-    },
+    watch: {},
     updated () {},
     created: async function () {
         let self = this
@@ -310,10 +305,6 @@ export default {
                 result = ''
             }
             return result
-        },
-        pageChange (page) {
-            this.$store.state.currentPage = page
-            window.scrollTo(0, 320)
         }
     }
 }
