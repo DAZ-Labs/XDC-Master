@@ -60,7 +60,7 @@
                         <b-form-input
                             :class="getValidationClass('mnemonic')"
                             v-model="mnemonic"
-                            autocomplete="off"
+                            autocomplete="false"
                             type="text" />
                         <span
                             v-if="$v.mnemonic.$dirty && !$v.mnemonic.required"
@@ -148,7 +148,7 @@
                     <li class="XDC-list__item">
                         <i class="tm-XDC XDC-list__icon" />
                         <div class="XDC-list__text">
-                            <p class="color-white mb-0">{{ balance }}
+                            <p class="color-white mb-0">{{ formatNumber(balance) }}
                             <span class="text-muted">{{ getCurrencySymbol() }}</span></p>
                             <span>Balance</span>
                         </div>
@@ -242,7 +242,7 @@
                                         :value="index"
                                         name="hdWallet"
                                         type="radio"
-                                        autocomplete="off"
+                                        autocomplete="false"
                                         style="width: 5%; float: left" >
                                     <div style="width: 70%; float: left">
                                         {{ hdwallet.address }}
@@ -327,7 +327,8 @@ export default {
             loading: false,
             qrCode: 'text',
             id: '',
-            interval: ''
+            interval: '',
+            txFee: 0.0000000000525
         }
     },
     validations: {
@@ -392,7 +393,7 @@ export default {
 
                 self.address = account
                 self.web3.eth.getBalance(self.address, function (a, b) {
-                    self.balance = new BigNumber(b).div(10 ** 18).toFormat()
+                    self.balance = new BigNumber(b).div(10 ** 18)
                     if (a) {
                         console.log('got an error', a)
                     }
@@ -689,14 +690,20 @@ export default {
             }
         },
         changeView (w, k) {
-            this.$router.push({ name: 'CandidateWithdraw',
-                params: {
-                    address: this.address,
-                    blockNumber: w.blockNumber,
-                    capacity: w.cap,
-                    index: k
-                }
-            })
+            if (this.balance.isGreaterThanOrEqualTo(this.txFee)) {
+                this.$router.push({ name: 'CandidateWithdraw',
+                    params: {
+                        address: this.address,
+                        blockNumber: w.blockNumber,
+                        capacity: w.cap,
+                        index: k
+                    }
+                })
+            } else {
+                this.$toasted.show('Not enough XDC for transaction fee', {
+                    type : 'info'
+                })
+            }
         },
         closeModal () {
             document.getElementById('hdwalletModal').style.display = 'none'

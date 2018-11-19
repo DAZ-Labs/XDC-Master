@@ -58,7 +58,7 @@
                             :class="getValidationClass('coinbase')"
                             v-model="coinbase"
                             name="coinbase"
-                            autocomplete="off"
+                            autocomplete="false"
                             type="text"/>
                         <span
                             v-if="$v.coinbase.$dirty && !$v.coinbase.required"
