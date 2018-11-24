@@ -1,5 +1,9 @@
-.color-hightlight {
+.color-highlight {
     color: $color-text-highlight !important;
+}
+
+.color-cyan {
+    color: $color-link !important;
 }
 
 .color-white {
@@ -135,15 +139,3 @@
     }
 }
 
-.XDC-middle {
-    color: #7573a6
-}
-.XDC-middle--red {
-    color: #f83f7d
-}
-.XDC-middle--orange {
-    color: orange
-}
-.XDC-middle--green {
-    color: green
-}

@@ -35,11 +35,9 @@
 
                         <router-link
                             v-if="isXDCnet"
+                            id="btn-setting"
                             to="/setting">
-                            <font-awesome-icon
-                                :icon="{ prefix: 'fas', iconName: 'user-circle' }"
-                                class="fa-2x ml-1"
-                                style="color: #678be0" />
+                            <i class="tm-cog ml-2" />
                         </router-link>
 
                         <!-- <router-link
@@ -54,90 +52,76 @@
                 <router-view/>
             </div>
             <footer
-                class="XDC-footer mt-2">
+                class="XDC-footer">
                 <div class="container">
-                    <div
-                        class="row">
-                        <b-col class="float-left">
-                            <p>
-                                XDCMaster {{ (new Date()).getFullYear() }} -
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="XDC-footer__copyright">
+                                XDCMaster &copy; {{ (new Date()).getFullYear() }} -
                                 <a
-                                    :href="`https://github.com/XinFin/XDCmaster/releases/tag/v${version}`">
+                                    :href="`https://github.com/XinFin/XDCmaster/releases/tag/v${version}`"
+                                    class="version-tag">
                                     v{{ version }}</a>
-                            </p>
-                        </b-col>
-                        <b-col>
-                            <div class="footer-center">
-                                <ul class="list-inline XDC-footer__social">
+                            </div>
+                            <div class="XDC-footer__links">
+                                <ul class="list-inline">
                                     <li class="list-inline-item">
                                         <a
-                                            href="https://t.me/XinFin"
-                                            target="_blank">
-                                            <font-awesome-icon
-                                                id="telegram"
-                                                :icon="{ prefix: 'fab', iconName: 'telegram' }"
-                                                class="fa-2x"/>
-                                        </a>
+                                            target="_blank"
+                                            href="https://bit.ly/2B6p29o"><i class="tm-lifebuoy mr-1"/>Need help?</a>
                                     </li>
                                     <li class="list-inline-item">
                                         <a
-                                            href="https://www.facebook.com/XinFinofficial"
-                                            target="_blank">
-                                            <font-awesome-icon
-                                                :icon="{ prefix: 'fab', iconName: 'facebook' }"
-                                                class="fa-2x"/>
-                                        </a>
+                                            target="_blank"
+                                            href="/privacyPolicy"><i class="tm-lock mr-1"/>Privacy Policy</a>
                                     </li>
                                     <li class="list-inline-item">
                                         <a
-                                            href="https://twitter.com/XinFinANN"
-                                            target="_blank">
-                                            <font-awesome-icon
-                                                :icon="{ prefix: 'fab', iconName: 'twitter' }"
-                                                class="fa-2x"/>
-                                        </a>
-                                    </li>
-                                    <li class="list-inline-item">
-                                        <a
-                                            href="https://github.com/XinFin/"
-                                            target="_blank">
-                                            <font-awesome-icon
-                                                :icon="{ prefix: 'fab', iconName: 'github' }"
-                                                class="fa-2x"/>
-                                        </a>
-                                    </li>
-                                    <li class="list-inline-item">
-                                        <a
-                                            href="https://www.reddit.com/r/XinFin/"
-                                            target="_blank">
-                                            <font-awesome-icon
-                                                :icon="{ prefix: 'fab', iconName: 'reddit' }"
-                                                class="fa-2x"/>
-                                        </a>
+                                            target="_blank"
+                                            href="/terms"><i class="tm-profile mr-1"/>Terms of Service</a>
                                     </li>
                                 </ul>
                             </div>
-                        </b-col>
-                        <b-col>
-                            <div
-                                class="float-right footer-right">
-                                <a
-                                    target="_blank"
-                                    href="https://bit.ly/2B6p29o">
-                                    <font-awesome-icon
-                                        id="question-circle"
-                                        :icon="{ prefix: 'fas', iconName: 'question-circle' }"
-                                        style="font-size: 15px"
-                                        class="mr-1"/>
-                                    Need help?</a>
-                                <a
-                                    target="_blank"
-                                    href="/privacyPolicy"><i class="tm-lock mr-2"/>Privacy Policy</a>
-                                <a
-                                    target="_blank"
-                                    href="/terms"><i class="tm-profile mr-2"/>Terms of Service</a>
-                            </div>
-                        </b-col>
+                        </div>
+                        <div class="col-md-4 XDC-footer__social">
+                            <ul class="list-inline">
+                                <li class="list-inline-item">
+                                    <a
+                                        href="https://t.me/XinFin"
+                                        target="_blank">
+                                        <i class="tm-telegram" />
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a
+                                        href="https://www.facebook.com/XinFinofficial"
+                                        target="_blank">
+                                        <i class="tm-facebook" />
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a
+                                        href="https://twitter.com/XinFinANN"
+                                        target="_blank">
+                                        <i class="tm-twitter" />
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a
+                                        href="https://github.com/XinFin/"
+                                        target="_blank">
+                                        <i class="tm-github" />
+                                    </a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a
+                                        href="https://www.reddit.com/r/XinFin/"
+                                        target="_blank">
+                                        <i class="tm-reddit" />
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </footer>
