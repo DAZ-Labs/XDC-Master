@@ -37,7 +37,7 @@ npm install
 truffle deploy --reset --network XDC
 cp abis/*json build/contracts/
 ```
-Note: before deploying to XinFin testnet, make sure you have XDC in the wallet. If not, get free at(http://faucet_testnet.xinfin.network/)
+Note: before deploying to XinFin testnet, make sure you have XDC in the wallet. If not, get free at (http://faucet_testnet.xinfin.network/)
 
 ## Enable https
 ``` npm run dev-https```

@@ -6,6 +6,9 @@
     "logs": {
         "level": "debug"
     },
+    "cors": [
+        "https://swagger.XinFin.com"
+    ],
     "blockchain": {
         "rpc": "https://testnet.XinFin.com",
         "ws": "wss://testnet.XinFin.com/ws",
