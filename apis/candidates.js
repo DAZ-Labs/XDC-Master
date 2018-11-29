@@ -17,13 +17,27 @@ const urljoin = require('url-join')
 const gas = config.get('blockchain.gas')
 const gasPrice = config.get('blockchain.gasPrice')
 
-router.get('/', async function (req, res, next) {
-    let limit = (req.query.limit) ? parseInt(req.query.limit) : 200
-    const skip = (req.query.page) ? limit * (req.query.page - 1) : 0
-    if (limit > 200) {
-        limit = 200
+router.get('/', [
+    query('limit')
+        .isInt({ min: 0, max: 200 }).optional().withMessage('limit should greater than 0 and less than 200'),
+    query('page').isNumeric({ no_symbols: true }).optional().withMessage('page must be number')
+], async function (req, res, next) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return next(errors.array())
     }
+
+    let limit = (req.query.limit) ? parseInt(req.query.limit) : 200
+    let skip
+    skip = (req.query.page) ? limit * (req.query.page - 1) : 0
     try {
+        const total = db.Candidate.countDocuments({
+            smartContractAddress: config.get('blockchain.validatorAddress')
+        })
+        const activeCandidates = db.Candidate.countDocuments({
+            smartContractAddress: config.get('blockchain.validatorAddress'),
+            status: { $ne: 'RESIGNED' }
+        })
         let data = await Promise.all([
             db.Candidate.find({
                 smartContractAddress: config.get('blockchain.validatorAddress')
@@ -69,7 +83,11 @@ router.get('/', async function (req, res, next) {
         })
         let ret = await Promise.all(map)
 
-        return res.json(ret)
+        return res.json({
+            items: ret,
+            total: await total,
+            activeCandidates: await activeCandidates
+        })
     } catch (e) {
         return next(e)
     }
@@ -141,26 +159,43 @@ router.get('/:candidate', async function (req, res, next) {
     return res.json(candidate)
 })
 
-router.get('/:candidate/voters', async function (req, res, next) {
-    let limit = (req.query.limit) ? parseInt(req.query.limit) : 200
-    const skip = (req.query.page) ? limit * (req.query.page - 1) : 0
-    if (limit > 200) {
-        limit = 200
+router.get('/:candidate/voters', [
+    query('limit')
+        .isInt({ min: 0, max: 200 }).optional().withMessage('limit should greater than 0 and less than 200'),
+    query('page').isNumeric({ no_symbols: true }).optional().withMessage('page must be number')
+], async function (req, res, next) {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return next(errors.array())
     }
+
+    let limit = (req.query.limit) ? parseInt(req.query.limit) : 200
+    let skip
+
+    skip = (req.query.page) ? limit * (req.query.page - 1) : 0
+
+    let total = db.Voter.countDocuments({
+        smartContractAddress: config.get('blockchain.validatorAddress'),
+        candidate: (req.params.candidate || '').toLowerCase()
+    })
 
     let voters = await db.Voter.find({
         smartContractAddress: config.get('blockchain.validatorAddress'),
         candidate: (req.params.candidate || '').toLowerCase()
-    }).limit(limit).skip(skip)
-    return res.json(voters)
+    }).sort({ capacityNumber: 'desc' }).limit(limit).skip(skip)
+    return res.json({
+        items: await voters,
+        total: await total
+    })
 })
 
 router.get('/:candidate/rewards', async function (req, res, next) {
     let limit = (req.query.limit) ? parseInt(req.query.limit) : 200
-    const skip = (req.query.page) ? limit * (req.query.page - 1) : 0
+    let skip
     if (limit > 200) {
         limit = 200
     }
+    skip = (req.query.page) ? limit * (req.query.page - 1) : 0
     let rewards = await db.MnReward.find({
         address: (req.params.candidate || '').toLowerCase()
     }).sort({ _id: -1 }).limit(limit).skip(skip)
@@ -363,21 +398,36 @@ router.get('/:candidate/isCandidate', async function (req, res, next) {
 })
 
 // Get masternode rewards
-router.get('/:candidate/:owner/getRewards', async function (req, res, next) {
+router.get('/:candidate/:owner/getRewards', [
+    query('limit')
+        .isInt({ min: 0, max: 100 }).optional().withMessage('limit should greater than 0 and less than 200'),
+    query('page').isNumeric({ no_symbols: true }).optional().withMessage('page must be number')
+], async function (req, res, next) {
     try {
+        const errors = validationResult(req)
+        if (!errors.isEmpty()) {
+            return next(errors.array())
+        }
+
         const candidate = req.params.candidate
         const owner = req.params.owner
-        const limit = 100
+        const page = (req.query.page) ? parseInt(req.query.page) : 0
+        let limit = (req.query.limit) ? parseInt(req.query.limit) : 100
+
         const rewards = await axios.post(
             urljoin(config.get('XDCscanUrl'), 'api/expose/rewards'),
             {
                 address: candidate,
                 limit,
+                page,
                 owner: owner,
                 reason: 'Voter'
             }
         )
-        return res.json(rewards.data)
+        return res.json({
+            items: rewards.data.items,
+            total: rewards.data.total
+        })
     } catch (e) {
         return next(e)
     }

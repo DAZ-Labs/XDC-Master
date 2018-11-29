@@ -221,7 +221,7 @@
         </div>
         <div
             :class="'container section section--mnrewards'
-            + (loading ? ' XDC-loading' : '')">
+            + (rewardLoading ? ' XDC-loading' : '')">
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
@@ -235,12 +235,11 @@
             <b-table
                 :items="mnRewards"
                 :fields="mnRewardsFields"
-                :current-page="mnRewardsCurrentPage"
                 :sort-by.sync="mnRewardsSortBy"
                 :sort-desc.sync="mnRewardsSortDesc"
                 :per-page="mnRewardsPerPage"
                 :show-empty="true"
-                :class="`XDC-table XDC-table--mnrewards${loading ? ' loading' : ''}`"
+                :class="`XDC-table XDC-table--mnrewards${rewardLoading ? ' loading' : ''}`"
                 empty-text="There are no rewards to show"
                 stacked="md" >
 
@@ -272,11 +271,12 @@
                 :per-page="mnRewardsPerPage"
                 v-model="mnRewardsCurrentPage"
                 align="center"
-                class="XDC-pagination" />
+                class="XDC-pagination"
+                @change="rewardPageChange" />
         </div>
         <div
             :class="'container section section-voters'
-            + (loading ? ' XDC-loading' : '')">
+            + (voterLoading ? ' XDC-loading' : '')">
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
@@ -290,10 +290,9 @@
             <b-table
                 :items="sortedVoters"
                 :fields="voterFields"
-                :current-page="voterCurrentPage"
                 :per-page="voterPerPage"
                 :show-empty="true"
-                :class="`XDC-table XDC-table--voted${loading ? ' loading' : ''}`"
+                :class="`XDC-table XDC-table--voted${voterLoading ? ' loading' : ''}`"
                 empty-text="There are no voters to show"
                 stacked="md" >
 
@@ -324,11 +323,12 @@
                 :per-page="voterPerPage"
                 v-model="voterCurrentPage"
                 align="center"
-                class="XDC-pagination" />
+                class="XDC-pagination"
+                @change="voterPageChange" />
         </div>
         <div
             :class="'container section section--txs'
-            + (loading ? ' XDC-loading' : '')">
+            + (txLoading ? ' XDC-loading' : '')">
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
@@ -342,10 +342,9 @@
             <b-table
                 :items="transactions"
                 :fields="txFields"
-                :current-page="txCurrentPage"
                 :per-page="txPerPage"
                 :show-empty="true"
-                :class="`XDC-table XDC-table--transactions${loading ? ' loading' : ''}`"
+                :class="`XDC-table XDC-table--transactions${txLoading ? ' loading' : ''}`"
                 empty-text="There are no transactions to show"
                 stacked="md" >
 
@@ -405,7 +404,8 @@
                 :per-page="txPerPage"
                 v-model="txCurrentPage"
                 align="center"
-                class="XDC-pagination" />
+                class="XDC-pagination"
+                @change="txPageChange"/>
         </div>
     </div>
 </template>
@@ -524,6 +524,9 @@ export default {
             txPerPage: 10,
             txTotalRows: 0,
             loading: false,
+            rewardLoading: false,
+            voterLoading: false,
+            txLoading: false,
             chartLoading: false,
             cpu0Series: [],
             isXDCnet: false,
@@ -542,7 +545,11 @@ export default {
     watch: {
         $route (to, from) {
             this.candidate.address = to.params.address.toLowerCase()
-            this.getCandidateData()
+            this.getCandidateData().then(() => {
+                this.getCandidateVoters()
+                this.getCandidateTransactions()
+                this.getCandidateRewards()
+            }).catch((error) => { console.log(error) })
         }
     },
     created: async function () {
@@ -573,7 +580,10 @@ export default {
             console.log(error)
         }
 
-        self.getCandidateData()
+        await self.getCandidateData()
+        self.getCandidateVoters()
+        self.getCandidateTransactions()
+        self.getCandidateRewards()
     },
     mounted () {},
     methods: {
@@ -595,10 +605,7 @@ export default {
                 let address = self.candidate.address
 
                 self.loading = true
-                // Get all information at the same time
                 const candidatePromise = axios.get(`/api/candidates/${address}`)
-                const voterPromise = axios.get(`/api/candidates/${address}/voters?limit=100`)
-                const txPromise = axios.get(`/api/transactions/candidate/${address}?limit=100`)
 
                 // Get candidate's information
                 let c = await candidatePromise
@@ -623,46 +630,111 @@ export default {
                 }
 
                 if (self.web3) {
+                    let youVoted = new BigNumber(0)
                     self.web3.eth.getBalance(self.candidate.address, function (a, b) {
                         self.candidate.balance = new BigNumber(b).div(10 ** 18)
                         if (a) {
                             console.log('got an error', a)
                         }
                     })
+                    if (self.account) {
+                        try {
+                            let contract = await self.getXDCValidatorInstance()
+                            youVoted = await contract.getVoterCap(address, self.account)
+                            self.candidate.cap = await contract.getCandidateCap(address).div(1e18).toNumber()
+                        } catch (e) {}
+                    }
+
+                    self.candidate.voted = youVoted.div(10 ** 18).toNumber()
                 }
+
+                self.loading = false
+            } catch (e) {
+                self.loading = false
+                console.log(e)
+            }
+        },
+        async getCandidateRewards () {
+            try {
+                const self = this
+                const address = self.candidate.address
+                // Masternode reward table
+                self.rewardLoading = true
+                const params = {
+                    page: self.mnRewardsCurrentPage,
+                    limit: self.mnRewardsPerPage
+                }
+                let mnRewards = await axios.get(
+                    `/api/candidates/${address}/${self.candidate.owner}/getRewards?${self.serializeQuery(params)}`
+                )
+                let items = []
+
+                mnRewards.data.items.map((r) => {
+                    items.push({
+                        epoch: r.epoch,
+                        signNumber: r.signNumber,
+                        reward: new BigNumber(r.reward).toFixed(6),
+                        createdAt: moment(r.rewardTime).fromNow(),
+                        dateTooltip: moment(r.rewardTime).format('lll')
+                    })
+                })
+                self.mnRewards = items
+
+                self.recentReward = (self.mnRewards[0] || {}).reward || 0
+
+                self.mnRewardsTotalRows = mnRewards.data.total
+                self.rewardLoading = false
+            } catch (error) {
+                self.rewardLoading = false
+                console.log(error)
+            }
+        },
+        async getCandidateVoters () {
+            try {
+                const self = this
+                const address = self.candidate.address
+                self.voterLoading = true
+                const params = {
+                    page: self.voterCurrentPage,
+                    limit: self.voterPerPage
+                }
+                const voterPromise = axios.get(`/api/candidates/${address}/voters?${self.serializeQuery(params)}`)
 
                 // Voter table
                 let voters = await voterPromise
+                let items = []
 
-                let youVoted = new BigNumber(0)
-                voters.data.map((v, idx) => {
-                    self.voters.push({
+                voters.data.items.map((v, idx) => {
+                    items.push({
                         address: v.voter,
                         cap: new BigNumber(v.capacity).div(10 ** 18).toNumber()
                     })
-
-                    if (v.voter === self.account) {
-                        youVoted = youVoted.plus(v.capacity)
-                    }
                 })
 
-                if (self.account && self.web3) {
-                    try {
-                        let contract = await self.getXDCValidatorInstance()
-                        youVoted = await contract.getVoterCap(address, self.account)
-                        self.candidate.cap = await contract.getCandidateCap(address).div(1e18).toNumber()
-                    } catch (e) {}
+                self.voters = items
+                self.voterTotalRows = voters.data.total
+                self.voterLoading = false
+            } catch (error) {
+                self.voterLoading = false
+                console.log(error)
+            }
+        },
+        async getCandidateTransactions () {
+            try {
+                const self = this
+                const address = self.candidate.address
+                self.txLoading = true
+                const params = {
+                    page: self.txCurrentPage,
+                    limit: self.txPerPage
                 }
-
-                self.candidate.voted = youVoted.div(10 ** 18).toNumber()
-
-                self.voterTotalRows = self.voters.length
-
+                const txPromise = axios.get(`/api/transactions/candidate/${address}?${self.serializeQuery(params)}`)
                 // Get transaction table
                 let txs = await txPromise
+                let items = []
 
-                txs.data.map((tx, idx) => {
-                    self.transactions.push({
+                txs.data.items.map((tx, idx) => {
+                    items.push({
                         tx: tx.tx,
                         voter: tx.voter,
                         candidate: tx.candidate,
@@ -672,30 +744,13 @@ export default {
                         dateTooltip: moment(tx.createdAt).format('lll')
                     })
                 })
+                self.transactions = items
 
-                self.txTotalRows = self.transactions.length
-
-                // Masternode reward table
-                let mnRewards = await axios.get(`/api/candidates/${address}/${self.candidate.owner}/getRewards`)
-
-                mnRewards.data.map((r) => {
-                    self.mnRewards.push({
-                        epoch: r.epoch,
-                        signNumber: r.signNumber,
-                        reward: new BigNumber(r.reward).toFixed(6),
-                        createdAt: moment(r.rewardTime).fromNow(),
-                        dateTooltip: moment(r.rewardTime).format('lll')
-                    })
-                })
-
-                self.recentReward = (self.mnRewards[0] || {}).reward || 0
-
-                self.mnRewardsTotalRows = self.mnRewards.length
-
-                self.loading = false
-            } catch (e) {
-                self.loading = false
-                console.log(e)
+                self.txTotalRows = txs.data.total
+                self.txLoading = false
+            } catch (error) {
+                self.txLoading = false
+                console.log(error)
             }
         },
         getColor (latestSignedBlock, currentBlock) {
@@ -715,6 +770,24 @@ export default {
                 result = ''
             }
             return result
+        },
+        txPageChange (val) {
+            if (this.txCurrentPage !== val) {
+                this.txCurrentPage = val
+                this.getCandidateTransactions()
+            }
+        },
+        voterPageChange (val) {
+            if (this.voterCurrentPage !== val) {
+                this.voterCurrentPage = val
+                this.getCandidateVoters()
+            }
+        },
+        rewardPageChange (val) {
+            if (this.mnRewardsCurrentPage !== val) {
+                this.mnRewardsCurrentPage = val
+                this.getCandidateRewards()
+            }
         }
     }
 }

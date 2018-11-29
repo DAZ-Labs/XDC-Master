@@ -21,9 +21,9 @@
         "coverage": "./node_modules/.bin/solidity-coverage",
         "electron:start": "electron .",
         "dist": "electron-builder",
-        "electron-packager:mac": "electron-packager . XinFin-mac-app --overwrite --platform=darwin --arch=x64 --icon=app/assets/img/icon.icns --prune=true --out=release-builds",
-        "electron-packager:linux": "electron-packager . XinFin-linux-app --overwrite --asar=true --platform=linux --arch=x64 --icon=app/assets/img/icon.png --prune=true --out=release-builds",
-        "electron-packager:win": "electron-packager . XinFin-windows-app --overwrite --asar=true --platform=win32 --arch=x64 --icon=app/assets/img/icon.ico --prune=true --out=release-builds"
+        "electron-packager:mac": "electron-packager .XinFin-mac-app --overwrite --platform=darwin --arch=x64 --icon=app/assets/img/icon.icns --prune=true --out=release-builds",
+        "electron-packager:linux": "electron-packager .XinFin-linux-app --overwrite --asar=true --platform=linux --arch=x64 --icon=app/assets/img/icon.png --prune=true --out=release-builds",
+        "electron-packager:win": "electron-packager .XinFin-windows-app --overwrite --asar=true --platform=win32 --arch=x64 --icon=app/assets/img/icon.ico --prune=true --out=release-builds"
     },
     "repository": {
         "type": "git",
@@ -60,7 +60,6 @@
         "lodash": "^4.17.10",
         "moment": "^2.22.2",
         "mongoose": "^5.0.17",
-        "morgan": "^1.9.1",
         "request": "^2.88.0",
         "store": "^2.0.12",
         "truffle-hdwallet-provider": "0.0.6",

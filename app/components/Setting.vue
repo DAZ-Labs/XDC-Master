@@ -125,7 +125,7 @@
                             <a
                                 href="http://bitly.com/2gmvrGG"
                                 target="_blank">Metamask Extension</a>
-                            then connect it to XinFin Mainnet or Testnet.</p>
+                            then connect it toXinFin Mainnet or Testnet.</p>
                     </div>
                     <div class="buttons text-right">
                         <b-button
@@ -388,7 +388,7 @@ export default {
                     try {
                         contract = await self.getXDCValidatorInstance()
                     } catch (error) {
-                        throw Error('Make sure you choose correct XinFin network.')
+                        throw Error('Make sure you choose correctXinFin network.')
                     }
                 }
 
@@ -630,7 +630,7 @@ export default {
                 if (self.interval) {
                     clearInterval(self.interval)
                 }
-                self.$toasted.show('Make sure you choose correct XinFin network.', {
+                self.$toasted.show('Make sure you choose correctXinFin network.', {
                     type : 'error'
                 })
             }
