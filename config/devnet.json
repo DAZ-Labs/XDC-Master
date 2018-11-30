@@ -1,8 +1,8 @@
 {
     "blockchain": {
-        "rpc": "https://rpc.devnet.XinFin.com",
-        "ws": "wss://ws.devnet.XinFin.com",
-        "networkId": 90
+        "rpc": "https://testnet.XinFin.com",
+        "ws": "wss://testnet.XinFin.com/ws",
+        "networkId": 89
     },
     "explorerUrl": "https://scan.devnet.XinFin.com",
     "XDCscanUrl": "http://XDCscan_server:3333",
@@ -10,6 +10,6 @@
     "db": {
         "uri" : "mongodb://XDCmaster_db:27017/governance"
     },
-    "grafanaUrl": "https://grafana.devnet.XinFin.com",
+    "grafanaUrl": "https://grafana.testnet.XinFin.com",
     "grafanaApiKey": "eyJrIjoiVlhBUUo2SnRxek50VGdtMmlMZlo2ZlZYaTNKaGpXMjciLCJuIjoidG9tb21hc3RlcjIiLCJpZCI6MX0="
 }

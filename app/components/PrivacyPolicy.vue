@@ -15,7 +15,7 @@
                     <h3 style="text-align: center">INTRODUCTION</h3>
                     <p>
                         Welcome to XDCMaster, a free, open-source, client-side tool for interacting with the
-                        blockchain.XinFin values privacy and we make a concerted effort to minimize and,
+                        blockchain. XinFin values privacy and we make a concerted effort to minimize and,
                         to the extent possible, eliminate the exposure of personal data during the use of our
                         interface. XDCMaster does not collect, hold, or store keys, account information,
                         or passwords. We do not collect data passively, do not monetize the collection of data,
@@ -44,7 +44,7 @@
                         style="text-align: center">
                         THE BLOCKCHAIN</h3>
                     <p>
-                        Due to the inherent transparency of many blockchains, including theXinFin Blockchain,
+                        Due to the inherent transparency of many blockchains, including the XinFin Blockchain,
                         transactions that individuals broadcast via XDCMaster may be publicly accessible.
                         This includes, but is not limited to, your public sending address, the public address of the
                         receiver, the amount sent or received, and any other data a user has chosen to include in a

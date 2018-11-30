@@ -7,7 +7,7 @@
         "level": "debug"
     },
     "cors": [
-        "XinFin.com"
+        "https://swagger.XinFin.com"
     ],
     "blockchain": {
         "rpc": "https://testnet.XinFin.com",

@@ -288,13 +288,14 @@
                 </div>
             </div>
             <b-table
-                :items="sortedVoters"
+                :items="voters"
                 :fields="voterFields"
                 :per-page="voterPerPage"
                 :show-empty="true"
                 :class="`XDC-table XDC-table--voted${voterLoading ? ' loading' : ''}`"
                 empty-text="There are no voters to show"
-                stacked="md" >
+                stacked="md"
+                @sort-changed="sortingChangeVoters" >
 
                 <template
                     slot="id"
@@ -312,7 +313,7 @@
                 </template>
 
                 <template
-                    slot="cap"
+                    slot="capacityNumber"
                     slot-scope="data">{{ formatCurrencySymbol(formatNumber(data.item.cap)) }}
                 </template>
             </b-table>
@@ -346,7 +347,8 @@
                 :show-empty="true"
                 :class="`XDC-table XDC-table--transactions${txLoading ? ' loading' : ''}`"
                 empty-text="There are no transactions to show"
-                stacked="md" >
+                stacked="md"
+                @sort-changed="sortingChangeTxes" >
 
                 <template
                     slot="id"
@@ -370,7 +372,7 @@
                 </template>
 
                 <template
-                    slot="cap"
+                    slot="capacity"
                     slot-scope="data">
                     {{ isNaN(data.item.cap) ? '---' : formatCurrencySymbol(data.item.cap) }}
                 </template>
@@ -478,15 +480,15 @@ export default {
                 {
                     key: 'address',
                     label: 'Address',
-                    sortable: true
+                    sortable: false
                 },
                 {
-                    key: 'cap',
+                    key: 'capacityNumber',
                     label: 'Capacity',
                     sortable: true
                 }
             ],
-            voterSortBy: 'cap',
+            voterSortBy: 'capacityNumber',
             voterSortDesc: true,
             voterCurrentPage: 1,
             voterPerPage: 10,
@@ -503,7 +505,7 @@ export default {
                     sortable: true
                 },
                 {
-                    key: 'cap',
+                    key: 'capacity',
                     label: 'Capacity',
                     sortable: true
                 },
@@ -518,7 +520,7 @@ export default {
                     sortable: false
                 }
             ],
-            txSortBy: 'cap',
+            txSortBy: 'createdAt',
             txSortDesc: true,
             txCurrentPage: 1,
             txPerPage: 10,
@@ -696,7 +698,9 @@ export default {
                 self.voterLoading = true
                 const params = {
                     page: self.voterCurrentPage,
-                    limit: self.voterPerPage
+                    limit: self.voterPerPage,
+                    sortBy: self.voterSortBy,
+                    sortDesc: self.voterSortDesc
                 }
                 const voterPromise = axios.get(`/api/candidates/${address}/voters?${self.serializeQuery(params)}`)
 
@@ -726,8 +730,11 @@ export default {
                 self.txLoading = true
                 const params = {
                     page: self.txCurrentPage,
-                    limit: self.txPerPage
+                    limit: self.txPerPage,
+                    sortBy: self.txSortBy,
+                    sortDesc: self.txSortDesc
                 }
+
                 const txPromise = axios.get(`/api/transactions/candidate/${address}?${self.serializeQuery(params)}`)
                 // Get transaction table
                 let txs = await txPromise
@@ -788,6 +795,16 @@ export default {
                 this.mnRewardsCurrentPage = val
                 this.getCandidateRewards()
             }
+        },
+        sortingChangeVoters (obj) {
+            this.voterSortBy = obj.sortBy
+            this.voterSortDesc = obj.sortDesc
+            this.getCandidateVoters()
+        },
+        sortingChangeTxes (obj) {
+            this.txSortBy = obj.sortBy
+            this.txSortDesc = obj.sortDesc
+            this.getCandidateTransactions()
         }
     }
 }

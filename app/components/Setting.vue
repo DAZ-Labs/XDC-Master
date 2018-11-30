@@ -28,6 +28,8 @@
                                 <option
                                     value="ledger">Ledger Wallet</option>
                                 <option
+                                    value="trezor">Trezor Wallet</option>
+                                <option
                                     v-if="!isElectron"
                                     value="metamask">Metamask/TrustWallet</option>
                             </b-form-select>
@@ -119,13 +121,30 @@
                             class="text-danger">Required field</span>
                     </b-form-group>
 
+                    <b-form-group
+                        v-if="provider === 'trezor'"
+                        class="mb-4"
+                        label-for="hdPath">
+                        <span>HD derivation path: </span>
+                        <label class="ml-1"><b>m/44'/60'/0'/0</b></label>
+                        <!-- <b-form-input
+                            :class="getValidationClass('hdPath')"
+                            :value="hdPath"
+                            v-model="hdPath"
+                            readonly
+                            type="text" /> -->
+                        <!-- <span
+                            v-if="$v.hdPath.$dirty && !$v.hdPath.required"
+                            class="text-danger">Required field</span> -->
+                    </b-form-group>
+
                     <div
                         v-if="!isReady && provider === 'metamask'">
                         <p>Please install &amp; login
                             <a
                                 href="http://bitly.com/2gmvrGG"
                                 target="_blank">Metamask Extension</a>
-                            then connect it toXinFin Mainnet or Testnet.</p>
+                            then connect it to XinFin Mainnet or Testnet.</p>
                     </div>
                     <div class="buttons text-right">
                         <b-button
@@ -388,7 +407,7 @@ export default {
                     try {
                         contract = await self.getXDCValidatorInstance()
                     } catch (error) {
-                        throw Error('Make sure you choose correctXinFin network.')
+                        throw Error('Make sure you choose correct XinFin network.')
                     }
                 }
 
@@ -490,20 +509,32 @@ export default {
             if (this.provider === 'ledger' && !this.$v.hdPath.$invalid) {
                 this.selectHdPath()
             }
+            if (this.provider === 'trezor' && !this.$v.hdPath.$invalid) {
+                this.hdPath = "m/44'/60'/0'/0"
+                this.selectHdPath()
+            }
         },
         selectHdPath: async function (offset = 0, limit = defaultWalletNumber) {
             let self = this
+            let wallets
             try {
                 self.loading = true
                 store.set('hdDerivationPath', self.hdPath)
-                let wallets = await self.loadMultipleLedgerWallets(offset, limit)
-                Object.assign(self.hdWallets, self.hdWallets, wallets)
-                document.getElementById('hdwalletModal').style.display = 'block'
-                self.loading = false
+                if (self.provider === 'trezor') {
+                    await self.unlockTrezor()
+                    wallets = await self.loadTrezorWallets(offset, limit)
+                } else {
+                    wallets = await self.loadMultipleLedgerWallets(offset, limit)
+                }
+                if (Object.keys(wallets).length > 0) {
+                    Object.assign(self.hdWallets, self.hdWallets, wallets)
+                    document.getElementById('hdwalletModal').style.display = 'block'
+                    self.loading = false
+                }
             } catch (error) {
                 console.log(error.message)
                 self.loading = false
-                self.$toasted.show(error.message, {
+                self.$toasted.show(error.message || error, {
                     type : 'error'
                 })
             }
@@ -520,6 +551,7 @@ export default {
             var wjs = false
             self.loading = true
             try {
+                let offset
                 switch (self.provider) {
                 case 'metamask':
                     if (window.web3) {
@@ -538,8 +570,14 @@ export default {
                     // wjs = await ws.connect(self.networks.wss)
                     // wjs = new Web3(new Web3.providers.WebsocketProvider(self.chainConfig.ws))
                     // web3 version 0.2 haven't supported WebsocketProvider yet. (for web@1.0 only)
-                    let offset = document.querySelector('input[name="hdWallet"]:checked').value.toString()
+                    offset = document.querySelector('input[name="hdWallet"]:checked').value.toString()
                     store.set('hdDerivationPath', self.hdPath + '/' + offset)
+                    break
+                case 'trezor':
+                    wjs = new Web3(new Web3.providers.HttpProvider(self.networks.rpc))
+                    offset = document.querySelector('input[name="hdWallet"]:checked').value.toString()
+                    store.set('hdDerivationPath', self.hdPath + '/' + offset)
+                    store.set('offset', offset)
                     break
                 default:
                     const walletProvider =
@@ -603,16 +641,35 @@ export default {
             }
         },
         async onChangeSelect (event) {
-            if (event === 'XDCwallet') {
+            switch (event) {
+            case 'XDCwallet':
                 await this.loginByQRCode()
                 this.interval = setInterval(async () => {
                     await this.getLoginResult()
                 }, 3000)
-            } else {
+                break
+            case 'trezor':
+                this.hdPath = "m/44'/60'/0'/0"
+                break
+            case 'ledger':
+                this.hdPath = "m/44'/889'/0'/0"
+                break
+            default:
                 if (this.interval) {
                     clearInterval(this.interval)
                 }
+                break
             }
+            // if (event === 'XDCwallet') {
+            //     await this.loginByQRCode()
+            //     this.interval = setInterval(async () => {
+            //         await this.getLoginResult()
+            //     }, 3000)
+            // } else {
+            //     if (this.interval) {
+            //         clearInterval(this.interval)
+            //     }
+            // }
         },
         async getAccountInfo (account) {
             const self = this
@@ -630,7 +687,7 @@ export default {
                 if (self.interval) {
                     clearInterval(self.interval)
                 }
-                self.$toasted.show('Make sure you choose correctXinFin network.', {
+                self.$toasted.show('Make sure you choose correct XinFin network.', {
                     type : 'error'
                 })
             }

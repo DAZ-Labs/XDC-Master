@@ -63,7 +63,7 @@
                 </div>
             </div>
             <b-table
-                :items="sortedCandidates"
+                :items="candidates"
                 :fields="candidateFields"
                 :per-page="perPage"
                 :sort-by.sync="sortBy"
@@ -71,7 +71,8 @@
                 :show-empty="true"
                 :class="`XDC-table XDC-table--voted${loading ? ' loading' : ''}`"
                 empty-text="There are no candidates to show"
-                stacked="md" >
+                stacked="md"
+                @sort-changed="sortingChangeCandidate" >
 
                 <template
                     slot="index"
@@ -89,7 +90,7 @@
                 </template>
 
                 <template
-                    slot="cap"
+                    slot="capacityNumber"
                     slot-scope="data">{{ formatCurrencySymbol(formatNumber(data.item.cap)) }}
                 </template>
             </b-table>
@@ -194,7 +195,8 @@
                 :show-empty="true"
                 :class="`XDC-table XDC-table--transactions${txLoading ? ' loading' : ''}`"
                 empty-text="There are no transactions to show"
-                stacked="md" >
+                stacked="md"
+                @sort-changed="sortingChangeTxes" >
 
                 <template
                     slot="id"
@@ -218,7 +220,7 @@
                 </template>
 
                 <template
-                    slot="cap"
+                    slot="capacity"
                     slot-scope="data">
                     {{ isNaN(data.item.cap) ? '---' : formatCurrencySymbol(data.item.cap) }}
                 </template>
@@ -261,7 +263,7 @@ export default {
                 {
                     key: 'address',
                     label: 'Address',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'name',
@@ -269,12 +271,12 @@ export default {
                     sortable: false
                 },
                 {
-                    key: 'cap',
+                    key: 'capacityNumber',
                     label: 'Capacity',
                     sortable: true
                 }
             ],
-            sortBy: 'cap',
+            sortBy: 'capacityNumber',
             sortDesc: true,
             isReady: !!this.web3,
             voter: this.$route.params.address.toLowerCase(),
@@ -324,7 +326,7 @@ export default {
                 {
                     key: 'candidate',
                     label: 'Candidate',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'event',
@@ -332,7 +334,7 @@ export default {
                     sortable: true
                 },
                 {
-                    key: 'cap',
+                    key: 'capacity',
                     label: 'Capacity',
                     sortable: true
                 },
@@ -350,7 +352,9 @@ export default {
             transactions: [],
             txCurrentPage: 1,
             txPerPage: 10,
-            txTotalRows: 0
+            txTotalRows: 0,
+            txSortBy: 'createdAt',
+            txSortDesc: true
         }
     },
     computed: {
@@ -394,7 +398,9 @@ export default {
                 self.loading = true
                 const params = {
                     page: self.currentPage,
-                    limit: self.perPage
+                    limit: self.perPage,
+                    sortBy: self.sortBy,
+                    sortDesc: self.sortDesc
                 }
                 const candiatePromise = axios.get(`/api/voters/${voter}/candidates?${self.serializeQuery(params)}`)
 
@@ -436,8 +442,11 @@ export default {
                 self.txLoading = true
                 const params = {
                     page: self.txCurrentPage,
-                    limit: self.txPerPage
+                    limit: self.txPerPage,
+                    sortBy: self.txSortBy,
+                    sortDesc: self.txSortDesc
                 }
+
                 const txPromise = axios.get(`/api/transactions/voter/${voter}?${self.serializeQuery(params)}`)
 
                 // transaction table
@@ -519,6 +528,16 @@ export default {
                 this.currentPage = val
                 this.getCandidates()
             }
+        },
+        sortingChangeCandidate (obj) {
+            this.sortBy = obj.sortBy
+            this.sortDesc = obj.sortDesc
+            this.getCandidates()
+        },
+        sortingChangeTxes (obj) {
+            this.txSortBy = obj.sortBy
+            this.txSortDesc = obj.sortDesc
+            this.getTransactions()
         }
     }
 }
