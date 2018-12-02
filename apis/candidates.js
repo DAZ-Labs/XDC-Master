@@ -15,7 +15,6 @@ const uuidv4 = require('uuid/v4')
 const urljoin = require('url-join')
 
 const gas = config.get('blockchain.gas')
-const gasPrice = config.get('blockchain.gasPrice')
 
 router.get('/', [
     query('limit')
@@ -40,22 +39,21 @@ router.get('/', [
         })
 
         const sort = {}
-        const collation = {}
 
         if (req.query.sortBy) {
             sort[req.query.sortBy] = (req.query.sortDesc === 'true') ? -1 : 1
             if (req.query.sortBy === 'capacity') {
-                collation.locale = 'en_US'
-                collation.numericOrdering = true
+                delete sort.capacity
+                sort.capacityNumber = (req.query.sortDesc === 'true') ? -1 : 1
             }
         } else {
-            sort.createdAt = -1
+            sort.capacityNumber = -1
         }
 
         let data = await Promise.all([
             db.Candidate.find({
                 smartContractAddress: config.get('blockchain.validatorAddress')
-            }).sort(sort).collation(collation).limit(limit).skip(skip).lean().exec(),
+            }).sort(sort).limit(limit).skip(skip).lean().exec(),
             db.Signer.findOne({}).sort({ _id: 'desc' }),
             db.Penalty.find({}).sort({ blockNumber: 'desc' }).lean().exec()
         ])
@@ -246,6 +244,7 @@ router.get('/:candidate/rewards', async function (req, res, next) {
 router.post('/apply', async function (req, res, next) {
     let key = req.query.key
     let network = config.get('blockchain.rpc')
+    const gasPrice = await web3.eth.getGasPrice()
     try {
         let walletProvider =
             (key.indexOf(' ') >= 0)
@@ -298,6 +297,7 @@ router.post('/apply', async function (req, res, next) {
 router.post('/applyBulk', async function (req, res, next) {
     let key = req.query.key
     let network = config.get('blockchain.rpc')
+    const gasPrice = await web3.eth.getGasPrice()
     try {
         let walletProvider =
             (key.indexOf(' ') >= 0)
@@ -347,6 +347,7 @@ router.post('/applyBulk', async function (req, res, next) {
 router.post('/resign', async function (req, res, next) {
     let key = req.query.key
     let network = config.get('blockchain.rpc')
+    const gasPrice = await web3.eth.getGasPrice()
     try {
         let walletProvider =
             (key.indexOf(' ') >= 0)
@@ -371,6 +372,7 @@ router.post('/resign', async function (req, res, next) {
 router.post('/vote', async function (req, res, next) {
     let key = req.query.key
     let network = config.get('blockchain.rpc')
+    const gasPrice = await web3.eth.getGasPrice()
     try {
         let walletProvider =
             (key.indexOf(' ') >= 0)
@@ -394,6 +396,7 @@ router.post('/vote', async function (req, res, next) {
 router.post('/unvote', async function (req, res, next) {
     let key = req.query.key
     let network = config.get('blockchain.rpc')
+    const gasPrice = await web3.eth.getGasPrice()
     try {
         let walletProvider =
             (key.indexOf(' ') >= 0)
@@ -451,7 +454,7 @@ router.get('/:candidate/:owner/getRewards', [
 
         const candidate = req.params.candidate
         const owner = req.params.owner
-        const page = (req.query.page) ? parseInt(req.query.page) : 0
+        const page = (req.query.page) ? parseInt(req.query.page) : 1
         let limit = (req.query.limit) ? parseInt(req.query.limit) : 100
 
         const rewards = await axios.post(

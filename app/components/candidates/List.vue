@@ -57,7 +57,7 @@
                 </div>
             </div>
             <b-table
-                :items="sortedCandidates"
+                :items="candidates"
                 :fields="fields"
                 :per-page="perPage"
                 :class="'XDC-table XDC-table--candidates ' + tableCssClass"
