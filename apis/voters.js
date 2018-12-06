@@ -51,10 +51,15 @@ router.get('/:voter/candidates', [
         }).lean().exec()
 
         voters = voters.map(v => {
-            v.candidateName = (_.findLast(candidates, (c) => {
+            let it = (_.findLast(candidates, (c) => {
                 return (c.candidate === v.candidate)
-            }) || {}).name || 'Anonymous'
-            return _.pick(v, ['candidate', 'capacity', 'capacityNumber', 'candidateName'])
+            }) || {})
+            v.candidateName = it.name || 'Anonymous'
+            v.totalCapacity = it.capacity
+            v.status = it.status
+            v.owner = it.owner
+            return _.pick(v, ['candidate', 'capacity', 'capacityNumber', 'totalCapacity',
+                'candidateName', 'status', 'owner'])
         })
         return res.json({
             items: voters,
@@ -318,7 +323,58 @@ router.get('/getScanningResult', [
         console.log(e)
         return res.status(500).send(e)
     }
-}
-)
+})
+
+router.get('/calculatingReward', [], async (req, res, next) => {
+    try {
+        // candidate
+        const address = (req.query.candidate || '').toLowerCase()
+        // amount
+        const amount = new BigNumber(req.query.amount || 0)
+
+        // search candidate
+        const candidate = await db.Candidate.findOne({
+            smartContractAddress: config.get('blockchain.validatorAddress'),
+            candidate: address
+        })
+
+        // get latest reward
+        const rewards = await axios.post(
+            urljoin(config.get('XDCscanUrl'), 'api/expose/rewards'),
+            {
+                address: address,
+                limit: 1,
+                page: 1,
+                owner: candidate.owner,
+                reason: 'Voter'
+            }
+        )
+        let signNumber = 0
+        let epoch
+        if (rewards.data.items.length > 0) {
+            signNumber = rewards.data.items[0].signNumber
+            epoch = rewards.data.items[0].epoch
+        }
+
+        const capacity = new BigNumber(candidate.capacity).div(10 ** 18)
+        const totalReward = new BigNumber(config.get('blockchain.reward'))
+        // get total signers in latest epoch
+        const totalSigners = await axios.post(
+            urljoin(config.get('XDCscanUrl'), `api/expose/totalSignNumber/${epoch}`)
+        )
+
+        if (totalSigners.data && totalSigners.data.totalSignNumber) {
+            // calculate devided reward
+            const masternodeReward = totalReward.multipliedBy(signNumber).dividedBy(totalSigners.data.totalSignNumber)
+
+            // calculate voter reward
+            const estimateReward = masternodeReward.multipliedBy((amount.div(0.5))).div(capacity.plus(amount)) || 'N/A'
+            return res.send(estimateReward.toString(10))
+        }
+        return res.send('N/A')
+    } catch (error) {
+        return next(error)
+    }
+})
 
 module.exports = router

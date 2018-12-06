@@ -9,7 +9,6 @@
       "networkId": "BC_NETWORK_ID"
   },
   "explorerUrl": "XDCSCAN_SITE_URL",
-  "grafanaUrl": "GRAFANA_URL",
   "XDCscanUrl": "XDCSCAN_API_URL",
   "baseUrl": "BASE_URL",
   "db": {

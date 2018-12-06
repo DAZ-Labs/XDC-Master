@@ -90,8 +90,20 @@
                 </template>
 
                 <template
-                    slot="capacityNumber"
-                    slot-scope="data">{{ formatCurrencySymbol(formatNumber(data.item.cap)) }}
+                    slot="capacity"
+                    slot-scope="data">
+                    {{ isNaN(data.item.capacity) ? '---' : formatCurrencySymbol(data.item.capacity) }}
+                    <span
+                        v-if="data.item.owner == voter"
+                        :id="`mnowner__${data.index}`">*</span>
+                    <b-tooltip :target="`mnowner__${data.index}`">
+                        This voter owns this node
+                    </b-tooltip>
+                </template>
+
+                <template
+                    slot="totalCapacity"
+                    slot-scope="data">{{ formatCurrencySymbol(formatBigNumber(data.item.totalCapacity, 3)) }}
                 </template>
             </b-table>
 
@@ -103,6 +115,8 @@
                 align="center"
                 class="XDC-pagination"
                 @change="candidatePageChange" />
+            <div class="text-guide">
+                All candidates are voted by this voter</div>
         </div>
         <div
             :class="'container section section--voterrewards'
@@ -113,7 +127,7 @@
                         <i class="tm-gift color-purple" />
                         <span>Voter Rewards</span>
                         <span class="text-truncate section-title__description">
-                            Calculate Reward for Voter</span>
+                            All Reward for Voter</span>
                     </h3>
                 </div>
             </div>
@@ -271,12 +285,22 @@ export default {
                     sortable: false
                 },
                 {
-                    key: 'capacityNumber',
+                    key: 'status',
+                    label: 'Status',
+                    sortable: false
+                },
+                {
+                    key: 'capacity',
+                    label: 'Voted Capacity',
+                    sortable: true
+                },
+                {
+                    key: 'totalCapacity',
                     label: 'Capacity',
                     sortable: true
                 }
             ],
-            sortBy: 'capacityNumber',
+            sortBy: 'capacity',
             sortDesc: true,
             isReady: !!this.web3,
             voter: this.$route.params.address.toLowerCase(),
@@ -357,13 +381,7 @@ export default {
             txSortDesc: true
         }
     },
-    computed: {
-        sortedCandidates: function () {
-            return this.candidates.slice().sort(function (a, b) {
-                return b.cap - a.cap
-            })
-        }
-    },
+    computed: { },
     watch: {
         $route (to, from) {
             this.voter = to.params.address.toLowerCase()
@@ -412,7 +430,10 @@ export default {
                     items.push({
                         address: c.candidate,
                         name: c.candidateName,
-                        cap: new BigNumber(c.capacity).div(10 ** 18).toNumber()
+                        status: c.status,
+                        owner: c.owner,
+                        capacity: new BigNumber(c.capacity).div(10 ** 18).toNumber(),
+                        totalCapacity: new BigNumber(c.totalCapacity).div(10 ** 18).toNumber()
                     })
                     self.totalVoted += new BigNumber(c.capacity).div(10 ** 18).toNumber()
                 })
@@ -530,6 +551,11 @@ export default {
             }
         },
         sortingChangeCandidate (obj) {
+            if (obj.sortBy === 'totalCapacity') {
+                return this.candidates.slice().sort(function (a, b) {
+                    return b.totalCapacity - a.totaCapacity
+                })
+            }
             this.sortBy = obj.sortBy
             this.sortDesc = obj.sortDesc
             this.getCandidates()

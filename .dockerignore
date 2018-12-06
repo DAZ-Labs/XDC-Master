@@ -4,4 +4,4 @@ node_modules
 .*.sw*
 .cache
 .eslintcache
-XinFin
+build/app.js*

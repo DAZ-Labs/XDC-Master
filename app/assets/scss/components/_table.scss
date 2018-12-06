@@ -88,7 +88,10 @@
         grid-template-columns: 100%;
         grid-column-gap: 15px;
       }
-  
+      @include media-breakpoint-between(sm,md) {
+            grid-column-gap: 20px;
+            margin-right: 20px;
+      }
       @include media-breakpoint-up(md) {
         grid-template-columns: 50% 50%;
       }
@@ -422,7 +425,27 @@
 
         thead tr,
         tbody tr {
-            grid-template-columns: auto 20% 15%;
+            grid-template-columns: auto 15% 15% 15% 15%;
+        }
+
+        th[aria-colindex="3"],
+        td[aria-colindex="3"] {
+            text-align: inherit;
+        }
+    }
+}
+
+.XDC-table--voter {
+
+    @include media-breakpoint-up(lg) {
+
+        .text-truncate {
+            max-width: 100%;
+        }
+
+        thead tr,
+        tbody tr {
+            grid-template-columns: auto 30%;
         }
 
         th[aria-colindex="3"],

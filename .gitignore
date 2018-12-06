@@ -1,5 +1,12 @@
+*.pem
 .*.sw*
-build/
 node_modules
 .vscode/
-.eslintcache 
+.eslintcache
+build/
+.idea/
+.node-xmlhttprequest*
+.env
+coverage
+coverage.json
+.DS_Store
