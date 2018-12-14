@@ -11,7 +11,7 @@
                 <ul class="XDC-list list-unstyled">
                     <li class="XDC-list__item">
                         <i class="tm-XDC XDC-list__icon" />
-                        <span class="XDC-list__text">You have to deposit at least 50,000 XDC</span>
+                        <span class="XDC-list__text">You have to deposit at least 10M XDC</span>
                     </li>
                     <li class="XDC-list__item">
                         <i class="tm-lock XDC-list__icon" />
@@ -47,7 +47,7 @@
                                 class="text-danger">Required field</span>
                             <span
                                 v-else-if="$v.applyValue.$dirty && !$v.applyValue.minValue"
-                                class="text-danger">Must be greater than 50,000 XDC</span>
+                                class="text-danger">Must be greater than 10M XDC</span>
                         </b-input-group>
                     </b-form-group>
                     <b-form-group
@@ -152,7 +152,7 @@ export default {
         return {
             account: '',
             isReady: !!this.web3,
-            applyValue: '50000',
+            applyValue: '10000000',
             coinbase: '',
             // nodeUrl: '',
             loading: false,
@@ -170,7 +170,7 @@ export default {
     validations: {
         applyValue: {
             required,
-            minValue: minValue(50000)
+            minValue: minValue(10000000)
         },
         coinbase: {
             required,

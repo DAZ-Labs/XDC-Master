@@ -6,9 +6,9 @@
             </h1>
             <div class="container">
                 <h3 style="text-align: center">LEGAL DISCLAIMER</h3>
-                <h5>1. Risks related to the use of XDCMaster </h5>
+                <h5>1. Risks related to the use of XDC-Master </h5>
                 <p>
-                    XDCMaster will not be responsible for any losses, damages or claims arising from
+                    XDC-Master will not be responsible for any losses, damages or claims arising from
                     events falling within the scope of the following five categories:
                 </p>
                 <p>
@@ -16,7 +16,7 @@
                     e.g., forgotten passwords, and payments sent to wrong coin addresses.
                 </p>
                 <p>
-                    (2) Software problems of XDCMaster and/or any cryptocurrency-related software
+                    (2) Software problems of XDC-Master and/or any cryptocurrency-related software
                     or service, e.g., corrupted wallet file, incorrectly constructed transactions,
                     unsafe cryptographic libraries, malware affecting the wallet and/or any
                     cryptocurrency-related software or service.
@@ -45,8 +45,8 @@
                 </p>
                 <h5>3. Compliance with tax obligations</h5>
                 <p>
-                    The users of XDCMaster are solely responsible to determinate what, if any, taxes apply
-                    to their crypto-currency transactions. The owners of, or contributors to, XDCMaster are NOT
+                    The users of XDC-Master are solely responsible to determinate what, if any, taxes apply
+                    to their crypto-currency transactions. The owners of, or contributors to, XDC-Master are NOT
                     responsible for determining the taxes that apply to crypto-currency transactions.
                 </p>
                 <h5>4. Limitation of liability</h5>
@@ -59,13 +59,13 @@
                 </p>
                 <h5>5. Arbitration</h5>
                 <p>
-                    The user of XDCMaster agrees to arbitrate any dispute arising from or in connection with
+                    The user of XDC-Master agrees to arbitrate any dispute arising from or in connection with
                     the service or this disclaimer, except for disputes related to copyrights, logos, trademarks,
                     trade names, trade secrets or patents.
                 </p>
                 <h5>6. Last amendment</h5>
                 <p>
-                    This disclaimer was amended for the last time on November 22nd, 2018.
+                    This disclaimer was amended for the last time on January 3st, 2019.
                 </p>
             </div>
         </b-card>

@@ -68,44 +68,6 @@
                             v-if="$v.mnemonic.$dirty && !$v.mnemonic.required"
                             class="text-danger">Required field</span>
                     </b-form-group>
-
-                    <b-form-group
-                        v-if="provider === 'XDCwallet'"
-                        class="mb-4"
-                        style="text-align: center">
-                        <vue-qrcode
-                            :options="{size: 250 }"
-                            :value="qrCode"
-                            class="img-fluid text-center text-lg-right"/>
-                        <div
-                            v-if="mobileCheck">
-                            <b-button
-                                :href="qrCodeApp"
-                                variant="primary">
-                                Open in App
-                            </b-button>
-                        </div>
-                        <div>
-                            <b>In case you do not have XDCWallet, download here</b>
-                        </div>
-                        <div
-                            style="margin-top: 5px">
-                            <a
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                href="https://goo.gl/MvE1GV"
-                                class="social-links__link">
-                                <img src="/app/assets/img/appstore.png" >
-                            </a>
-                            <a
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                href="https://goo.gl/4tFQzY"
-                                class="social-links__link">
-                                <img src="/app/assets/img/googleplay.png" >
-                            </a>
-                        </div>
-                    </b-form-group>
                     <b-form-group
                         v-if="provider === 'ledger'"
                         class="mb-4"
@@ -120,7 +82,6 @@
                             v-if="$v.hdPath.$dirty && !$v.hdPath.required"
                             class="text-danger">Required field</span>
                     </b-form-group>
-
                     <b-form-group
                         v-if="provider === 'trezor'"
                         class="mb-4"

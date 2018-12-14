@@ -10,7 +10,7 @@
                 </div>
                 <div class="container">
                     <p>
-                        Last updated: November, 2018
+                        Last updated: January, 2019
                     </p>
                     <h3 style="text-align: center">INTRODUCTION</h3>
                     <p>
@@ -211,7 +211,7 @@
 export default {
     data: () => {
         return {
-            email: 'admin@XinFin.com'
+            email: 'info@XinFin.org'
         }
     }
 }

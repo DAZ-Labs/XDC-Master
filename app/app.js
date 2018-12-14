@@ -61,7 +61,7 @@ Vue.use(Toasted, {
 // set trezor's manifest
 TrezorConnect.manifest({
     email: 'admin@XinFin.com',
-    appUrl: 'https://master.XinFin.com'
+    appUrl: 'https://testnet.XinFin.network'
 })
 
 stockInit(Highcharts)

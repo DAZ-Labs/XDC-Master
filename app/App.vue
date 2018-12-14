@@ -82,7 +82,7 @@
                             <div class="XDC-footer__copyright">
                                 XDCMaster &copy; {{ (new Date()).getFullYear() }} -
                                 <a
-                                    :href="`https://github.com/XinFin/XDCmaster/releases/tag/v${version}`"
+                                    :href="`https://github.com/XinFinOrg/XDC-master/releases/tag/v${version}`"
                                     class="version-tag">
                                     v{{ version }}</a>
                             </div>
@@ -122,21 +122,14 @@
                                 </li>
                                 <li class="list-inline-item">
                                     <a
-                                        href="https://www.facebook.com/XinFinofficial"
-                                        target="_blank">
-                                        <i class="tm-facebook" />
-                                    </a>
-                                </li>
-                                <li class="list-inline-item">
-                                    <a
-                                        href="https://twitter.com/XinFinANN"
+                                        href="https://twitter.com/XinFin_Official"
                                         target="_blank">
                                         <i class="tm-twitter" />
                                     </a>
                                 </li>
                                 <li class="list-inline-item">
                                     <a
-                                        href="https://github.com/XinFin/"
+                                        href="https://github.com/XinFinOrg/"
                                         target="_blank">
                                         <i class="tm-github" />
                                     </a>
