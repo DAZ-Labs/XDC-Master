@@ -5,8 +5,7 @@
             <div class="row">
                 <div class="col-12">
                     <h3 class="section-title">
-                        <i class="tm-bolt color-pink" />
-                        <span>Network Status</span>
+                        <span style="color:black; font-weight:bold;">Network Status</span>
                     </h3>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -15,12 +14,20 @@
                         <p class="XDC-card__text">
                             #{{ chainConfig.blockNumber }}
                         </p>
+                        <img
+                            src="/app/assets/img/current_block-icon.png"
+                            class="XDC-card__img"
+                        >
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <b-card class="XDC-card XDC-card">
                         <h6 class="XDC-card__title">Block Time</h6>
                         <p class="XDC-card__text">{{ chainConfig.blockTime }}.00 s</p>
+                        <img
+                            src="/app/assets/img/block_time-icon.png"
+                            class="XDC-card__img1"
+                        >
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -28,6 +35,10 @@
                         <h6 class="XDC-card__title">Epoch</h6>
                         <p class="XDC-card__text">
                             #{{ Math.floor(chainConfig.blockNumber / chainConfig.epoch) + 1 }}</p>
+                        <img
+                            src="/app/assets/img/epoch-icon.png"
+                            class="XDC-card__img2"
+                        >
                     </b-card>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -36,6 +47,10 @@
                         <p class="XDC-card__text">
                             <!-- eslint-disable-next-line max-len -->
                             #{{ parseInt(chainConfig.epoch) * (Math.floor(parseInt(chainConfig.blockNumber) / parseInt(chainConfig.epoch) + 1)) }}</p>
+                        <img
+                            src="/app/assets/img/next_checkpoint-icon.png"
+                            class="XDC-card__img3"
+                        >
                     </b-card>
                 </div>
             </div>
@@ -47,7 +62,7 @@
                     <h3 class="section-title--masternodes">
                         <div class="masternode-bar">
                             <i class="tm-flag color-yellow" />
-                            <span>Candidates</span>
+                            <span class="candidates">Candidates</span>
                             <span class="text-truncate section-title__description">
                                 <a
                                     v-if="activeCandidates !== 0"
@@ -124,7 +139,8 @@
                         <span
                             :class="'XDC-chip '
                                 + (data.item.status === 'PROPOSED' || data.item.status === 'MASTERNODE' ?
-                            'XDC-chip--primary' : 'XDC-chip--accent') ">
+                            'XDC-chip--primary' : 'XDC-chip--accent') "
+                            style="background:white;color:black;">
                             {{ data.item.status.toUpperCase() }}
                         </span>
                     </div>
@@ -137,7 +153,14 @@
                         v-if="data.item.status === 'PROPOSED' || data.item.status === 'MASTERNODE'"
                         variant="primary"
                         class="mt-3 mt-lg-0 vote-btn"
-                        @click="onRowClick(data.item.address)">Vote</b-button>
+                        style="background:white; color:black;"
+                        @click="onRowClick(data.item.address)">
+                        <span
+                            class="glyphicon glyphicon-thumbs-up"
+                            style="color:orange;"
+                        >Vote
+                        </span>
+                    </b-button>
                 </template>
             </b-table>
             <b-pagination
